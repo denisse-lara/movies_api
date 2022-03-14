@@ -23,6 +23,8 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    from api.model import user_profile
+
     return app
 
 
