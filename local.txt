@@ -2,6 +2,7 @@ alembic==1.7.6
 attrs==21.4.0
 black==22.1.0
 click==8.0.4
+environs==9.5.0
 flasgger==0.9.5
 Flask==2.0.3
 flask-marshmallow==0.14.0

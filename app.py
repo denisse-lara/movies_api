@@ -1,7 +1,12 @@
-import os
-
 from flask import Flask
 from flasgger import Swagger
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+import config
+
+db = SQLAlchemy()
+migrate = Migrate()
 
 
 def create_app():
@@ -12,10 +17,19 @@ def create_app():
 
     # Initialize config
     app.config.from_pyfile("config.py")
+    app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = config.SQLALCHEMY_TRACK_MODIFICATIONS
+
+    db.init_app(app)
+    migrate.init_app(app, db)
 
     return app
 
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host=os.getenv("HOST"), port=os.getenv("PORT"))
+
+    with app.app_context():
+        db.create_all()
+
+    app.run(host=config.HOST, port=config.PORT)
