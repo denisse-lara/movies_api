@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import jwt
 from flask import Blueprint, request, jsonify
@@ -6,13 +7,14 @@ from werkzeug.security import check_password_hash
 
 import config
 from api.model.user_profile import UserProfile
+from api.model.auth import JWTWhitelist
 from api.schema.user_profile import UserProfileSchema
 from app import db
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-@auth_blueprint.route("/login")
+@auth_blueprint.route("/login", methods=["GET"])
 def login():
     auth = request.authorization
 
@@ -32,15 +34,20 @@ def login():
         return jsonify(error_response), 401
 
     if check_password_hash(user_profile.password, auth.password):
-        token = jwt.encode(
-            {
-                "public_id": user_profile.public_id,
-                "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
-            },
-            config.SECRET_KEY,
-            algorithm=config.JWT_ALGORITHMS,
-        )
-        return jsonify({"token": token})
+        jwt_whited = JWTWhitelist.query.filter_by(user_id=user_profile.id).first()
+
+        if not jwt_whited:
+            jwt_whited = generate_user_token(user_profile)
+            return jsonify({"token": jwt_whited.token})
+
+        # if existing token is still valid, return it
+        # otherwise, recreate it
+        try:
+            jwt.decode(jwt_whited, config.SECRET_KEY, algorithms="HS256")
+        except jwt.ExpiredSignatureError:
+            jwt_whited = generate_user_token(user_profile)
+        finally:
+            return jsonify({"token": jwt_whited.token})
 
     return jsonify(error_response), 401
 
@@ -63,9 +70,47 @@ def register():
     db.session.add(new_user_profile)
     db.session.commit()
 
-    user_schema = UserProfileSchema(exclude=["password", "admin", "banned"])
+    user_schema = UserProfileSchema(exclude=["admin", "banned"])
 
     return {
         "message": "User created",
-        "user": user_schema.dumps(new_user_profile),
+        "user": json.loads(user_schema.dumps(new_user_profile)),
     }, 201
+
+
+@auth_blueprint.route('/logout', methods=["GET"])
+def logout():
+    if "Authorization" not in request.headers:
+        return {"status_code": 401, "message": "Missing authorization bearer token"}, 401
+
+    bearer = request.headers["Authorization"]
+    if len(bearer.split(' ')) < 2:
+        return {"status_code": 401, "message": "Missing authorization bearer token"}, 401
+
+    token = bearer.split(' ')[1]
+    whited = JWTWhitelist.query.filter_by(token=token).first()
+    if not whited:
+        return {"message": "No user logged"}, 200
+
+    if whited:
+        data = jwt.decode(whited, config.SECRET_KEY, algorithms="HS256")
+        db.session.delete(whited)
+        db.session.commit()
+
+    return {"message": "User logged out"}, 200
+
+
+def generate_user_token(user_profile: UserProfile):
+    token = jwt.encode(
+        {
+            "public_id": user_profile.public_id,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
+        },
+        config.SECRET_KEY,
+        algorithm=config.JWT_ALGORITHMS,
+    )
+    jwt_whited = JWTWhitelist(user_id=user_profile.id, token=token)
+    db.session.add(jwt_whited)
+    db.session.commit()
+
+    return jwt_whited

@@ -39,7 +39,7 @@ class TestAuth(BaseTest):
             "user", res.json, "Registration response returns new user information"
         )
 
-        new_user = json.loads(res.json["user"])
+        new_user = json.loads(json.dumps(res.json["user"]))
         self.assertTrue(
             new_user["public_id"], "Response must include the user public_id"
         )
@@ -88,6 +88,16 @@ class TestAuth(BaseTest):
                 f"DecodeError: {de}. " "Authentication token should be a valid JWT"
             )
 
+    def test_login_multiple_times_returns_same_token_if_not_expired(self):
+        authorization = get_encoded_authorization(
+            "%s:%s" % (self.username, self.password)
+        )
+        res = self.client.get("/auth/login", headers={"Authorization": authorization})
+        token1 = res.json["token"]
+        res = self.client.get("/auth/login", headers={"Authorization": authorization})
+        token2 = res.json["token"]
+        self.assertEqual(token1, token2)
+
     def test_login_with_correct_credentials_returns_correct_public_id(self):
         authorization = get_encoded_authorization(
             "%s:%s" % (self.username, self.password)
@@ -120,6 +130,27 @@ class TestAuth(BaseTest):
         )
         self.assertEqual("Invalid user credentials", res.json["message"])
 
+    def test_logout_logged_user(self):
+        res = self.client.get("/auth/logout")
+        self.assertEqual(401, res.status_code, "User must be logged in before logging out")
+
+        res = self.client.get("/auth/logout", headers={"Authorization": "Bearer"})
+        self.assertEqual(401, res.status_code, "Authorization header must have bearer token")
+
+        authorization = get_encoded_authorization(
+            "%s:%s" % (self.username, self.password)
+        )
+        res = self.client.get("/auth/login", headers={"Authorization": authorization})
+        token = res.json["token"]
+
+        authorization = get_encoded_bearer(token)
+        res = self.client.get("/auth/logout", headers={"Authorization": authorization})
+        self.assertEqual(200, res.status_code)
+
 
 def get_encoded_authorization(credentials):
     return f"Basic %s" % base64.b64encode(bytes(credentials, "utf-8")).decode("utf-8")
+
+
+def get_encoded_bearer(token):
+    return f"Bearer %s" % base64.b64encode(bytes(token, "utf-8")).decode("utf-8")
