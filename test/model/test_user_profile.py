@@ -34,7 +34,6 @@ class TestUserProfileUnit(unittest.TestCase):
 
 
 class TestUserProfileInt(BaseTest):
-
     def test_user_profile_defaults(self):
         """
         Can store a user in the db.

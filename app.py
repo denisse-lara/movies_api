@@ -2,11 +2,13 @@ from flask import Flask
 from flasgger import Swagger
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_marshmallow import Marshmallow
 
 import config
 
 db = SQLAlchemy()
 migrate = Migrate()
+ma = Marshmallow()
 
 
 def create_app():
@@ -22,6 +24,7 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+    ma.init_app(app)
 
     from api.model import user_profile
 

@@ -1,11 +1,13 @@
 import datetime
 
 import jwt
-from flask import Blueprint, request, make_response, jsonify
+from flask import Blueprint, request, jsonify
 from werkzeug.security import check_password_hash
 
 import config
 from api.model.user_profile import UserProfile
+from api.schema.user_profile import UserProfileSchema
+from app import db
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -17,7 +19,7 @@ def login():
     error_response = {
         "status_code": 401,
         "message": "Invalid user credentials",
-        "description": "Basic realm='Provide valid credentials'"
+        "description": "Basic realm='Provide valid credentials'",
     }
 
     if not auth or not auth.username or not auth.password:
@@ -41,3 +43,29 @@ def login():
         return jsonify({"token": token})
 
     return jsonify(error_response), 401
+
+
+@auth_blueprint.route("/register", methods=["POST"])
+def register():
+    user_data = request.get_json()
+
+    if not user_data.get("username") or not user_data.get("password"):
+        return {
+            "message": "Missing user data",
+            "status_code": 422,
+        }, 422
+
+    new_user_profile = UserProfile(
+        username=user_data["username"],
+        password=user_data["password"],
+        display_name=user_data.get("display_name", None),
+    )
+    db.session.add(new_user_profile)
+    db.session.commit()
+
+    user_schema = UserProfileSchema(exclude=["password", "admin", "banned"])
+
+    return {
+        "message": "User created",
+        "user": user_schema.dumps(new_user_profile),
+    }, 201
