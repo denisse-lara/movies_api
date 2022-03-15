@@ -25,6 +25,10 @@ def create_app():
 
     from api.model import user_profile
 
+    from api.route import auth
+
+    app.register_blueprint(auth.auth_blueprint)
+
     return app
 
 

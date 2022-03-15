@@ -2,7 +2,7 @@ import unittest
 import sqlalchemy.exc
 import uuid
 
-from test.testing_config import setup_env
+from test.base_test import BaseTest
 from api.model.user_profile import UserProfile
 
 
@@ -33,9 +33,7 @@ class TestUserProfileUnit(unittest.TestCase):
         )
 
 
-class TestUserProfileInt(unittest.TestCase):
-    def setUp(self) -> None:
-        self.app, self.db = setup_env()
+class TestUserProfileInt(BaseTest):
 
     def test_user_profile_defaults(self):
         """
@@ -115,8 +113,3 @@ class TestUserProfileInt(unittest.TestCase):
                 uuid.UUID(created_user.public_id, version=4)
             except ValueError:
                 self.fail("UserProfile.public_id must be a valid uuid4 string")
-
-    def tearDown(self):
-        with self.app.app_context():
-            self.db.session.remove()
-            self.db.drop_all()

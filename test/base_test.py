@@ -1,3 +1,5 @@
+import unittest
+
 import app
 
 
@@ -18,3 +20,14 @@ def setup_env():
         new_db.create_all()
 
     return new_app, new_db
+
+
+class BaseTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.app, self.db = setup_env()
+        self.client = self.app.test_client()
+
+    def tearDown(self) -> None:
+        with self.app.app_context():
+            self.db.session.remove()
+            self.db.drop_all()
