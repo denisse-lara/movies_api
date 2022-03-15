@@ -2,6 +2,7 @@ import datetime
 import json
 
 import jwt
+import sqlalchemy.exc
 from flask import Blueprint, request, jsonify
 from werkzeug.security import check_password_hash
 
@@ -62,13 +63,19 @@ def register():
             "status_code": 422,
         }, 422
 
-    new_user_profile = UserProfile(
-        username=user_data["username"],
-        password=user_data["password"],
-        display_name=user_data.get("display_name", None),
-    )
-    db.session.add(new_user_profile)
-    db.session.commit()
+    try:
+        new_user_profile = UserProfile(
+            username=user_data["username"],
+            password=user_data["password"],
+            display_name=user_data.get("display_name", None),
+        )
+        db.session.add(new_user_profile)
+        db.session.commit()
+    except sqlalchemy.exc.IntegrityError:
+        return {
+            "message": "User with username already exists",
+            "status_code": 500,
+        }, 500
 
     user_schema = UserProfileSchema(exclude=["admin", "banned"])
 
@@ -78,22 +85,27 @@ def register():
     }, 201
 
 
-@auth_blueprint.route('/logout', methods=["GET"])
+@auth_blueprint.route("/logout", methods=["GET"])
 def logout():
     if "Authorization" not in request.headers:
-        return {"status_code": 401, "message": "Missing authorization bearer token"}, 401
+        return {
+            "status_code": 401,
+            "message": "Missing authorization bearer token",
+        }, 401
 
     bearer = request.headers["Authorization"]
-    if len(bearer.split(' ')) < 2:
-        return {"status_code": 401, "message": "Missing authorization bearer token"}, 401
+    if len(bearer.split(" ")) < 2:
+        return {
+            "status_code": 401,
+            "message": "Missing authorization bearer token",
+        }, 401
 
-    token = bearer.split(' ')[1]
+    token = bearer.split(" ")[1]
     whited = JWTWhitelist.query.filter_by(token=token).first()
     if not whited:
         return {"message": "No user logged"}, 200
 
     if whited:
-        data = jwt.decode(whited, config.SECRET_KEY, algorithms="HS256")
         db.session.delete(whited)
         db.session.commit()
 

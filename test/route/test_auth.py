@@ -46,6 +46,20 @@ class TestAuth(BaseTest):
         self.assertEqual(new_user["username"], payload["username"])
         self.assertEqual(new_user["display_name"], payload["display_name"])
 
+    def test_register_user_with_same_username_returns_integrity_error(self):
+        payload = {
+            "username": "normal_user",
+            "password": "safe-password123",
+            "display_name": "Normal User",
+        }
+        res = self.client.post("/auth/register", json=payload)
+        self.assertEqual(201, res.status_code, "Valid registration returns 201")
+
+        res = self.client.post("/auth/register", json=payload)
+        self.assertEqual(
+            500, res.status_code, "Should not register two users with the same username"
+        )
+
     def test_register_user_with_incomplete_data(self):
         # no password
         payload = {"username": "normal_user"}
@@ -132,10 +146,14 @@ class TestAuth(BaseTest):
 
     def test_logout_logged_user(self):
         res = self.client.get("/auth/logout")
-        self.assertEqual(401, res.status_code, "User must be logged in before logging out")
+        self.assertEqual(
+            401, res.status_code, "User must be logged in before logging out"
+        )
 
         res = self.client.get("/auth/logout", headers={"Authorization": "Bearer"})
-        self.assertEqual(401, res.status_code, "Authorization header must have bearer token")
+        self.assertEqual(
+            401, res.status_code, "Authorization header must have bearer token"
+        )
 
         authorization = get_encoded_authorization(
             "%s:%s" % (self.username, self.password)
