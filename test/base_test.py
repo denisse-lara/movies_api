@@ -1,10 +1,12 @@
 import unittest
 
-import app
+from app import create_app, db
+
+from api.model.user_profile import UserProfile
 
 
 def setup_env():
-    new_app = app.create_app()
+    new_app = create_app()
     new_app.config.update(
         {
             "TESTING": True,
@@ -15,7 +17,7 @@ def setup_env():
         }
     )
 
-    new_db = app.db
+    new_db = db
     with new_app.app_context():
         new_db.create_all()
 
@@ -27,7 +29,25 @@ class BaseTest(unittest.TestCase):
         self.app, self.db = setup_env()
         self.client = self.app.test_client()
 
+        # credentials for admin user
+        self.username = "admin"
+        self.password = "12345"
+        self.display_name = "Admin"
+
     def tearDown(self) -> None:
         with self.app.app_context():
             self.db.session.remove()
             self.db.drop_all()
+
+    def create_user(self, username, password, display_name, admin):
+        with self.app.app_context():
+            user = UserProfile(
+                username=username,
+                password=password,
+                display_name=display_name,
+                admin=admin,
+            )
+            self.db.session.add(user)
+            self.db.session.commit()
+
+            self.user_public_id = user.public_id

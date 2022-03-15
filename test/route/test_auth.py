@@ -13,19 +13,7 @@ from api.model.user_profile import UserProfile
 class TestAuth(BaseTest):
     def setUp(self) -> None:
         super().setUp()
-        self.username = "admin"
-        self.password = "12345"
-        self.display_name = "Admin"
-        with self.app.app_context():
-            user = UserProfile(
-                username=self.username,
-                password=self.password,
-                display_name=self.display_name,
-                admin=True,
-            )
-            self.db.session.add(user)
-            self.db.session.commit()
-            self.user_public_id = user.public_id
+        self.create_user(self.username, self.password, self.display_name, True)
 
     def test_register_user_with_complete_data(self):
         payload = {
