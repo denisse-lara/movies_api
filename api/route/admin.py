@@ -47,7 +47,7 @@ def promote_to_admin(user, public_id):
     return (
         jsonify(
             {
-                "message": "User %s promoted to admin" % public_id,
+                "message": "User '%s' promoted to admin" % user.username,
                 "user": json.loads(user_schema.dumps(user)),
             }
         ),
@@ -67,7 +67,7 @@ def demote_to_normal(user, public_id):
     return (
         jsonify(
             {
-                "message": "User %s demoted to normal" % public_id,
+                "message": "User '%s' demoted to normal" % user.username,
                 "user": json.loads(user_schema.dumps(user)),
             }
         ),
@@ -88,7 +88,7 @@ def ban_user(user, public_id):
     return (
         jsonify(
             {
-                "message": "User %s banned" % public_id,
+                "message": "User '%s' banned" % user.username,
                 "user": json.loads(user_schema.dumps(user)),
             }
         ),
@@ -108,7 +108,7 @@ def unban_user(user, public_id):
     return (
         jsonify(
             {
-                "message": "User %s unbanned" % public_id,
+                "message": "User '%s' unbanned" % user.username,
                 "user": json.loads(user_schema.dumps(user)),
             }
         ),
@@ -120,11 +120,12 @@ def unban_user(user, public_id):
 @find_user
 @authorized_admin
 def delete_user(user, public_id):
+    username = user.username
     clear_user_jwt(user.id)
     db.session.delete(user)
     db.session.commit()
 
     return (
-        jsonify({"message": "User %s deleted" % public_id}),
+        jsonify({"message": "User '%s' deleted" % username}),
         200,
     )
