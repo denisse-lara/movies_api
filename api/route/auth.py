@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+from functools import wraps
 
 import jwt
 import sqlalchemy.exc
@@ -15,6 +16,45 @@ from app import db
 
 url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "auth")
 auth_blueprint = Blueprint("auth", __name__, url_prefix=url_prefix)
+
+
+def authorized_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = get_token(request)
+
+        if not token:
+            return {
+                "status_code": 401,
+                "message": "Missing authorization bearer token",
+            }, 401
+
+        try:
+            data = jwt.decode(
+                bytes(token, "utf-8"), config.SECRET_KEY, config.JWT_ALGORITHMS
+            )
+        except jwt.exceptions.ExpiredSignatureError:
+            return {
+                "status_code": 403,
+                "message": "Expired authorization token",
+            }, 403
+        except jwt.exceptions.InvalidTokenError:
+            return {
+                "status_code": 401,
+                "message": "Invalid authorization token",
+            }, 401
+
+        user = UserProfile.query.filter_by(public_id=data.get("public_id")).first()
+
+        if not user or not user.admin:
+            return {
+                "status_code": 403,
+                "message": "Forbidden action for logged user",
+            }, 403
+
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 @auth_blueprint.route("/login", methods=["GET"])
@@ -46,7 +86,11 @@ def login():
         # if existing token is still valid, return it
         # otherwise, recreate it
         try:
-            jwt.decode(bytes(jwt_whited.token, "utf-8"), config.SECRET_KEY, algorithms=config.JWT_ALGORITHMS)
+            jwt.decode(
+                bytes(jwt_whited.token, "utf-8"),
+                config.SECRET_KEY,
+                algorithms=config.JWT_ALGORITHMS,
+            )
         except jwt.ExpiredSignatureError:
             db.session.delete(jwt_whited)
             db.session.commit()
@@ -91,20 +135,14 @@ def register():
 
 @auth_blueprint.route("/logout", methods=["GET"])
 def logout():
-    if "Authorization" not in request.headers:
+    token = get_token(request)
+
+    if not token:
         return {
             "status_code": 401,
             "message": "Missing authorization bearer token",
         }, 401
 
-    bearer = request.headers["Authorization"]
-    if len(bearer.split(" ")) < 2:
-        return {
-            "status_code": 401,
-            "message": "Missing authorization bearer token",
-        }, 401
-
-    token = bearer.split(" ")[1]
     whited = JWTWhitelist.query.filter_by(token=token).first()
     if not whited:
         return {"message": "No user logged"}, 200
@@ -130,3 +168,23 @@ def generate_user_token(user_profile: UserProfile):
     db.session.commit()
 
     return jwt_whited
+
+
+def clear_user_jwt(user_id: int):
+    jwt_token = JWTWhitelist.query.filter_by(user_id=user_id).first()
+    # revoke user authorization
+    if jwt_token:
+        db.session.delete(jwt_token)
+        db.session.commit()
+
+
+def get_token(current_request):
+    if "Authorization" not in current_request.headers:
+        return None
+
+    bearer = current_request.headers["Authorization"]
+    if len(bearer.split(" ")) < 2:
+        return None
+
+    token = bearer.split(" ")[1]
+    return token
