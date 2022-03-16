@@ -46,8 +46,10 @@ def login():
         # if existing token is still valid, return it
         # otherwise, recreate it
         try:
-            jwt.decode(jwt_whited, config.SECRET_KEY, algorithms="HS256")
+            jwt.decode(bytes(jwt_whited.token, "utf-8"), config.SECRET_KEY, algorithms=config.JWT_ALGORITHMS)
         except jwt.ExpiredSignatureError:
+            db.session.delete(jwt_whited)
+            db.session.commit()
             jwt_whited = generate_user_token(user_profile)
         finally:
             return jsonify({"token": jwt_whited.token})
@@ -118,7 +120,7 @@ def generate_user_token(user_profile: UserProfile):
     token = jwt.encode(
         {
             "public_id": user_profile.public_id,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24),
         },
         config.SECRET_KEY,
         algorithm=config.JWT_ALGORITHMS,
