@@ -55,3 +55,20 @@ class TestAdmin(BaseTest):
             404, res.status_code, "Trying to demote non existing user returns 404"
         )
         self.assertEqual("User not found", res.json["message"])
+
+    def test_ban_existing_user_returns_ok(self):
+        self.create_user("not_admin", "1234", "Not Admin", True)
+        res = self.client.put(url_prefix + "/users/%s/ban" % self.user_public_id)
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/users/<public_id>/ban should exist"
+        )
+
+        banned_value = res.json["user"]["banned"]
+        self.assertEqual(True, banned_value, "User should be banned")
+
+    def test_ban_non_existing_user_returns_not_found(self):
+        res = self.client.put(url_prefix + "/users/%s/ban" % "not_good_id")
+        self.assertEqual(
+            404, res.status_code, "Trying to ban non existing user returns 404"
+        )
+        self.assertEqual("User not found", res.json["message"])

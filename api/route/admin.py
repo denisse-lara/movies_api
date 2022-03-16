@@ -73,4 +73,23 @@ def demote_to_normal(user, public_id):
     )
 
 
+@admin_blueprint.route("/users/<public_id>/ban", methods=["PUT"])
+@find_user
+def ban_user(user, public_id):
+    if not user.banned:
+        user.banned = True
+        db.session.commit()
+
+    user_schema = UserProfileSchema()
+    return (
+        jsonify(
+            {
+                "message": "User %s banned" % public_id,
+                "user": json.loads(user_schema.dumps(user)),
+            }
+        ),
+        200,
+    )
+
+
 # TODO: delete user
