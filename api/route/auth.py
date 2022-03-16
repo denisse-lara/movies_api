@@ -32,13 +32,41 @@ def authorized_admin(f):
 
         user = UserProfile.query.filter_by(public_id=data.get("public_id")).first()
 
-        if not user or not user.admin:
-            return {
-                "status_code": 403,
-                "message": "Forbidden action for logged user",
-            }, 403
+        if not user.admin:
+            return make_response(
+                (
+                    {
+                        "status_code": 403,
+                        "message": "Forbidden action for logged user",
+                    },
+                    403,
+                )
+            )
 
         return f(*args, **kwargs)
+
+    return decorated
+
+
+def authorized_user(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = get_token(request)
+        # TODO: figure out a way to not do this weird validation
+        if type(token) is not str:
+            return token
+
+        data = decode_jwt(token)
+        if type(data) is not dict:
+            return data
+
+        user = UserProfile.query.filter_by(public_id=data.get("public_id")).first()
+        if not user:
+            return make_response(
+                ({"message": "Unauthorized request", "status_code": 401}, 401)
+            )
+
+        return f(user, *args, **kwargs)
 
     return decorated
 
@@ -207,6 +235,11 @@ def decode_jwt(token):
             bytes(token, "utf-8"), config.SECRET_KEY, config.JWT_ALGORITHMS
         )
     except jwt.exceptions.ExpiredSignatureError:
+        # TODO: refactor code related to adding and removing jwt from whitelist
+        whited = JWTWhitelist.query.filter_by(token=token).first()
+        if whited:
+            db.session.delete(whited)
+            db.session.commit()
         return make_response(
             (
                 {

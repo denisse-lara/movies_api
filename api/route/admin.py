@@ -116,7 +116,7 @@ def unban_user(user, public_id):
     )
 
 
-@admin_blueprint.route("/users/<public_id>/", methods=["DELETE"])
+@admin_blueprint.route("/users/<public_id>", methods=["DELETE"])
 @find_user
 @authorized_admin
 def delete_user(user, public_id):

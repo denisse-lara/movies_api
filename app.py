@@ -28,10 +28,11 @@ def create_app():
 
     from api.model import user_profile, auth
 
-    from api.route import auth, admin
+    from api.route import auth, admin, user
 
     app.register_blueprint(auth.auth_blueprint)
     app.register_blueprint(admin.admin_blueprint)
+    app.register_blueprint(user.user_blueprint)
 
     return app
 
