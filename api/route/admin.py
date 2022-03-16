@@ -92,4 +92,23 @@ def ban_user(user, public_id):
     )
 
 
+@admin_blueprint.route("/users/<public_id>/unban", methods=["PUT"])
+@find_user
+def unban_user(user, public_id):
+    if user.banned:
+        user.banned = False
+        db.session.commit()
+
+    user_schema = UserProfileSchema()
+    return (
+        jsonify(
+            {
+                "message": "User %s unbanned" % public_id,
+                "user": json.loads(user_schema.dumps(user)),
+            }
+        ),
+        200,
+    )
+
+
 # TODO: delete user

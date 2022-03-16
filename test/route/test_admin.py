@@ -23,7 +23,7 @@ class TestAdmin(BaseTest):
         self.assertEqual(len(users), 3, "")
 
     def test_promote_existing_user_to_admin_returns_ok(self):
-        self.create_user("not_admin", "1234", "Not Admin", False)
+        self.create_user("not_admin", "1234", "Not Admin", admin=False)
         res = self.client.put(url_prefix + "/users/%s/promote" % self.user_public_id)
         self.assertEqual(
             200, res.status_code, url_prefix + "/users/<public_id>/promote should exist"
@@ -40,7 +40,7 @@ class TestAdmin(BaseTest):
         self.assertEqual("User not found", res.json["message"])
 
     def test_demote_existing_user_from_admin_returns_ok(self):
-        self.create_user("not_admin", "1234", "Not Admin", True)
+        self.create_user("not_admin", "1234", "Not Admin", admin=True)
         res = self.client.put(url_prefix + "/users/%s/demote" % self.user_public_id)
         self.assertEqual(
             200, res.status_code, url_prefix + "/users/<public_id>/demote should exist"
@@ -57,7 +57,7 @@ class TestAdmin(BaseTest):
         self.assertEqual("User not found", res.json["message"])
 
     def test_ban_existing_user_returns_ok(self):
-        self.create_user("not_admin", "1234", "Not Admin", True)
+        self.create_user("not_admin", "1234", "Not Admin", banned=False)
         res = self.client.put(url_prefix + "/users/%s/ban" % self.user_public_id)
         self.assertEqual(
             200, res.status_code, url_prefix + "/users/<public_id>/ban should exist"
@@ -70,5 +70,22 @@ class TestAdmin(BaseTest):
         res = self.client.put(url_prefix + "/users/%s/ban" % "not_good_id")
         self.assertEqual(
             404, res.status_code, "Trying to ban non existing user returns 404"
+        )
+        self.assertEqual("User not found", res.json["message"])
+
+    def test_unban_existing_user_returns_ok(self):
+        self.create_user("banned", "1234", "Banned", banned=True)
+        res = self.client.put(url_prefix + "/users/%s/unban" % self.user_public_id)
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/users/<public_id>/unban should exist"
+        )
+
+        banned_value = res.json["user"]["banned"]
+        self.assertEqual(False, banned_value, "User should be unbanned")
+
+    def test_unban_non_existing_user_returns_not_found(self):
+        res = self.client.put(url_prefix + "/users/%s/unban" % "not_good_id")
+        self.assertEqual(
+            404, res.status_code, "Trying to unban non existing user returns 404"
         )
         self.assertEqual("User not found", res.json["message"])

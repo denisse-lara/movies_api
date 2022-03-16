@@ -39,13 +39,16 @@ class BaseTest(unittest.TestCase):
             self.db.session.remove()
             self.db.drop_all()
 
-    def create_user(self, username, password, display_name, admin):
+    def create_user(
+        self, username, password, display_name=None, admin=False, banned=False
+    ):
         with self.app.app_context():
             user = UserProfile(
                 username=username,
                 password=password,
                 display_name=display_name,
                 admin=admin,
+                banned=banned,
             )
             self.db.session.add(user)
             self.db.session.commit()
