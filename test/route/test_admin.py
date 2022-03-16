@@ -3,7 +3,7 @@ from flask import json
 from api.route.admin import url_prefix
 from test.base_test import BaseTest
 from api.model.user_profile import UserProfile
-from test.route.test_auth import get_encoded_authorization, url_prefix as auth_prefix
+from test.route.test_auth import get_basic_auth, url_prefix as auth_prefix
 
 
 class TestAdmin(BaseTest):
@@ -16,7 +16,7 @@ class TestAdmin(BaseTest):
             if not user:
                 self.create_user("admin", "admin", "Admin", True)
 
-            authorization = get_encoded_authorization("admin:admin")
+            authorization = get_basic_auth("admin:admin")
             res = self.client.get(
                 auth_prefix + "/login",
                 headers={"Authorization": authorization},
@@ -139,7 +139,7 @@ class TestAdmin(BaseTest):
     def test_delete_existing_user_returns_ok(self):
         self.create_user("created", "1234", "created")
         res = self.client.delete(
-            url_prefix + "/users/%s/" % self.user_public_id,
+            url_prefix + "/users/%s" % self.user_public_id,
             headers={"Authorization": f"Bearer {self.admin_token}"},
         )
         self.assertEqual(
@@ -149,7 +149,7 @@ class TestAdmin(BaseTest):
 
     def test_delete_non_existing_user_returns_not_found(self):
         res = self.client.delete(
-            url_prefix + "/users/%s/" % "not_good_id",
+            url_prefix + "/users/%s" % "not_good_id",
             headers={"Authorization": f"Bearer {self.admin_token}"},
         )
         self.assertEqual(
@@ -182,14 +182,14 @@ class TestAdmin(BaseTest):
         )
         self.assertEqual(401, res.status_code, "Missing token should return 401")
         res = self.client.delete(
-            url_prefix + "/users/%s/" % self.user_public_id,
+            url_prefix + "/users/%s" % self.user_public_id,
         )
         self.assertEqual(401, res.status_code, "Missing token should return 401")
 
     def test_performing_admin_operations_without_admin_user_returns_forbidden(self):
         self.create_user("created", "1234", "created")
 
-        authorization = get_encoded_authorization("created:1234")
+        authorization = get_basic_auth("created:1234")
         res = self.client.get(
             auth_prefix + "/login",
             headers={"Authorization": authorization},
@@ -222,7 +222,7 @@ class TestAdmin(BaseTest):
         )
         self.assertEqual(403, res.status_code, "Normal user should not access admin")
         res = self.client.delete(
-            url_prefix + "/users/%s/" % self.user_public_id,
+            url_prefix + "/users/%s" % self.user_public_id,
             headers={"Authorization": f"Bearer {token}"},
         )
         self.assertEqual(403, res.status_code, "Normal user should not access admin")

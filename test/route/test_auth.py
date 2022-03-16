@@ -52,10 +52,10 @@ class TestAuth(BaseTest):
     def test_register_admin_user_with_admin_user_returns_created(self):
         res = self.client.get(
             url_prefix + "/login",
-            headers={"Authorization": get_encoded_authorization("admin:admin")},
+            headers={"Authorization": get_basic_auth("admin:admin")},
         )
         token = res.json["token"]
-        admin_auth = get_encoded_bearer(token)
+        admin_auth = get_bearer(token)
 
         payload = {
             "username": "admin_user",
@@ -95,9 +95,7 @@ class TestAuth(BaseTest):
         )
 
     def test_login_auth_with_credentials_returns_jwt(self):
-        authorization = get_encoded_authorization(
-            "%s:%s" % (self.username, self.password)
-        )
+        authorization = get_basic_auth("%s:%s" % (self.username, self.password))
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
@@ -118,9 +116,7 @@ class TestAuth(BaseTest):
             )
 
     def test_login_multiple_times_returns_same_token_if_not_expired(self):
-        authorization = get_encoded_authorization(
-            "%s:%s" % (self.username, self.password)
-        )
+        authorization = get_basic_auth("%s:%s" % (self.username, self.password))
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
@@ -132,9 +128,7 @@ class TestAuth(BaseTest):
         self.assertEqual(token1, token2)
 
     def test_login_with_correct_credentials_returns_correct_public_id(self):
-        authorization = get_encoded_authorization(
-            "%s:%s" % (self.username, self.password)
-        )
+        authorization = get_basic_auth("%s:%s" % (self.username, self.password))
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
@@ -152,9 +146,7 @@ class TestAuth(BaseTest):
 
     def test_login_with_banned_user_returns_forbidden(self):
         self.create_user("banned", "banned", "Banned", banned=True)
-        authorization = get_encoded_authorization(
-            "%s:%s" % (self.username, self.password)
-        )
+        authorization = get_basic_auth("%s:%s" % (self.username, self.password))
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
@@ -162,7 +154,7 @@ class TestAuth(BaseTest):
         self.assertEqual("User is banned from access", res.json["message"])
 
     def test_login_with_incorrect_credentials_returns_not_authorized(self):
-        authorization = get_encoded_authorization("%s:52687" % self.username)
+        authorization = get_basic_auth("%s:52687" % self.username)
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
@@ -171,7 +163,7 @@ class TestAuth(BaseTest):
         )
         self.assertEqual("Invalid user credentials", res.json["message"])
 
-        authorization = get_encoded_authorization("nimda:%s" % self.password)
+        authorization = get_basic_auth("nimda:%s" % self.password)
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
@@ -193,24 +185,22 @@ class TestAuth(BaseTest):
             401, res.status_code, "Authorization header must have bearer token"
         )
 
-        authorization = get_encoded_authorization(
-            "%s:%s" % (self.username, self.password)
-        )
+        authorization = get_basic_auth("%s:%s" % (self.username, self.password))
         res = self.client.get(
             url_prefix + "/login", headers={"Authorization": authorization}
         )
         token = res.json["token"]
 
-        authorization = get_encoded_bearer(token)
+        authorization = get_bearer(token)
         res = self.client.get(
             url_prefix + "/logout", headers={"Authorization": authorization}
         )
         self.assertEqual(200, res.status_code)
 
 
-def get_encoded_authorization(credentials):
+def get_basic_auth(credentials):
     return f"Basic %s" % base64.b64encode(bytes(credentials, "utf-8")).decode("utf-8")
 
 
-def get_encoded_bearer(token):
+def get_bearer(token):
     return f"Bearer %s" % token
