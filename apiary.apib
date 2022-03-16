@@ -110,6 +110,30 @@ fetch any user's information.
                 "username": "username"
             }
 
+### Modify User Display Name [PUT /users/1]
+
+A user can change their display name.
+
++ Request
+
+    + Headers
+    
+            Authentication: Bearer Token
+    
+    + Body
+
+            {
+                "display_name": "New Name",
+            }
+
++ Response 200 (application/json)
+
+            {
+                "display_name": "New Name",
+                "public_id": "45e8c566-96eb-4ded-b16e-5dcb70f23f8a",
+                "username": "username"
+            }
+
 ### List of Liked Movies [GET /users/1/movies]
 
 List of movies liked by the logged user.
