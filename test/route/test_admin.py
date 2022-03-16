@@ -29,6 +29,7 @@ class TestAdmin(BaseTest):
             200, res.status_code, url_prefix + "/users/<public_id>/promote should exist"
         )
 
+        self.assertIn("user", res.json, "Response should return the user data")
         admin_value = res.json["user"]["admin"]
         self.assertEqual(True, admin_value, "User should be promoted to admin")
 
@@ -46,6 +47,7 @@ class TestAdmin(BaseTest):
             200, res.status_code, url_prefix + "/users/<public_id>/demote should exist"
         )
 
+        self.assertIn("user", res.json, "Response should return the user data")
         admin_value = res.json["user"]["admin"]
         self.assertEqual(False, admin_value, "User should be demoted to normal")
 
@@ -63,6 +65,7 @@ class TestAdmin(BaseTest):
             200, res.status_code, url_prefix + "/users/<public_id>/ban should exist"
         )
 
+        self.assertIn("user", res.json, "Response should return the user data")
         banned_value = res.json["user"]["banned"]
         self.assertEqual(True, banned_value, "User should be banned")
 
@@ -80,6 +83,7 @@ class TestAdmin(BaseTest):
             200, res.status_code, url_prefix + "/users/<public_id>/unban should exist"
         )
 
+        self.assertIn("user", res.json, "Response should return the user data")
         banned_value = res.json["user"]["banned"]
         self.assertEqual(False, banned_value, "User should be unbanned")
 
