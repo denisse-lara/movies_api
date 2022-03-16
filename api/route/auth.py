@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 
 import jwt
 import sqlalchemy.exc
@@ -12,7 +13,8 @@ from api.model.auth import JWTWhitelist
 from api.schema.user_profile import UserProfileSchema
 from app import db
 
-auth_blueprint = Blueprint("auth", __name__, url_prefix="/auth")
+url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "auth")
+auth_blueprint = Blueprint("auth", __name__, url_prefix=url_prefix)
 
 
 @auth_blueprint.route("/login", methods=["GET"])

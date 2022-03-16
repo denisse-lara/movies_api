@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../technical_challenge')
+
+sys.path.append("../technical_challenge")
 
 from app import create_app, db
 from api.model.user_profile import UserProfile

@@ -1,9 +1,12 @@
+import os
+
 from flask import Blueprint, jsonify, json
 
 from api.model.user_profile import UserProfile
 from api.schema.user_profile import UserProfileSchema
 
-admin_blueprint = Blueprint("admin", __name__, url_prefix="/admin")
+url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "admin")
+admin_blueprint = Blueprint("admin", __name__, url_prefix=url_prefix)
 
 # TODO: validate that it is admin user
 
