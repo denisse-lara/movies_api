@@ -89,3 +89,18 @@ class TestAdmin(BaseTest):
             404, res.status_code, "Trying to unban non existing user returns 404"
         )
         self.assertEqual("User not found", res.json["message"])
+
+    def test_delete_existing_user_returns_ok(self):
+        self.create_user("created", "1234", "created")
+        res = self.client.delete(url_prefix + "/users/%s/" % self.user_public_id)
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/users/<public_id>/unban should exist"
+        )
+        self.assertIn("deleted", res.json["message"], "User should be deleted")
+
+    def test_delete_non_existing_user_returns_not_found(self):
+        res = self.client.delete(url_prefix + "/users/%s/" % "not_good_id")
+        self.assertEqual(
+            404, res.status_code, "Trying to delete non existing user returns 404"
+        )
+        self.assertEqual("User not found", res.json["message"])

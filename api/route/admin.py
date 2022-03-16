@@ -111,4 +111,13 @@ def unban_user(user, public_id):
     )
 
 
-# TODO: delete user
+@admin_blueprint.route("/users/<public_id>/", methods=["DELETE"])
+@find_user
+def delete_user(user, public_id):
+    db.session.delete(user)
+    db.session.commit()
+
+    return (
+        jsonify({"message": "User %s deleted" % public_id}),
+        200,
+    )
