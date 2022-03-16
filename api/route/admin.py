@@ -35,7 +35,19 @@ def promote_to_admin(public_id):
     return jsonify(json.loads(user_schema.dumps(user))), 200
 
 
-# TODO: demote to normal
+@admin_blueprint.route("/users/<public_id>/demote", methods=["PUT"])
+def demote_to_normal(public_id):
+    user = UserProfile.query.filter_by(public_id=public_id).first()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    if user.admin:
+        user.admin = False
+        db.session.commit()
+
+    user_schema = UserProfileSchema()
+    return jsonify(json.loads(user_schema.dumps(user))), 200
 
 # TODO: ban user
 
