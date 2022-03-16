@@ -26,7 +26,7 @@ def create_app():
     migrate.init_app(app, db)
     ma.init_app(app)
 
-    from api.model import user_profile
+    from api.model import user_profile, auth
 
     from api.route import auth, admin
 

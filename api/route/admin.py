@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, json
 
 from api.model.user_profile import UserProfile
 from api.schema.user_profile import UserProfileSchema
+from app import db
 
 url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "admin")
 admin_blueprint = Blueprint("admin", __name__, url_prefix=url_prefix)
@@ -19,7 +20,20 @@ def get_all_users():
     return jsonify(json.loads(users_list)), 200
 
 
-# TODO: promote to admin
+@admin_blueprint.route("/users/<public_id>/promote", methods=["PUT"])
+def promote_to_admin(public_id):
+    user = UserProfile.query.filter_by(public_id=public_id).first()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    if not user.admin:
+        user.admin = True
+        db.session.commit()
+
+    user_schema = UserProfileSchema()
+    return jsonify(json.loads(user_schema.dumps(user))), 200
+
 
 # TODO: demote to normal
 
