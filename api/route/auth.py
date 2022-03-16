@@ -77,6 +77,11 @@ def login():
         return jsonify(error_response), 401
 
     if check_password_hash(user_profile.password, auth.password):
+        if user_profile.banned:
+            error_response["message"] = "User is banned from access"
+            error_response["description"] = "Your account has been banned by an admin"
+            return jsonify(error_response), 403
+
         jwt_whited = JWTWhitelist.query.filter_by(user_id=user_profile.id).first()
 
         if not jwt_whited:

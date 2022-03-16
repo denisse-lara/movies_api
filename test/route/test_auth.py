@@ -14,7 +14,7 @@ from api.model.user_profile import UserProfile
 class TestAuth(BaseTest):
     def setUp(self) -> None:
         super().setUp()
-        self.create_user(self.username, self.password, self.display_name, True)
+        self.create_user("admin", "admin", "Admin", True)
 
     def test_register_user_with_complete_data(self):
         payload = {
@@ -125,6 +125,17 @@ class TestAuth(BaseTest):
             self.user_public_id,
             "JWT should contain the public id of the authenticated user",
         )
+
+    def test_login_with_banned_user_returns_forbidden(self):
+        self.create_user("banned", "banned", "Banned", banned=True)
+        authorization = get_encoded_authorization(
+            "%s:%s" % (self.username, self.password)
+        )
+        res = self.client.get(
+            url_prefix + "/login", headers={"Authorization": authorization}
+        )
+        self.assertEqual(403, res.status_code, "Banned user should not login")
+        self.assertEqual("User is banned from access", res.json["message"])
 
     def test_login_with_incorrect_credentials_returns_not_authorized(self):
         authorization = get_encoded_authorization("%s:52687" % self.username)

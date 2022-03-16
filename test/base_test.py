@@ -29,11 +29,6 @@ class BaseTest(unittest.TestCase):
         self.app, self.db = setup_env()
         self.client = self.app.test_client()
 
-        # credentials for admin user
-        self.username = "admin"
-        self.password = "12345"
-        self.display_name = "Admin"
-
     def tearDown(self) -> None:
         with self.app.app_context():
             self.db.session.remove()
@@ -50,6 +45,10 @@ class BaseTest(unittest.TestCase):
                 admin=admin,
                 banned=banned,
             )
+            self.username = username
+            self.password = password
+            self.display_name = password
+
             self.db.session.add(user)
             self.db.session.commit()
 
