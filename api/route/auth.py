@@ -5,7 +5,7 @@ from functools import wraps
 
 import jwt
 import sqlalchemy.exc
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response, wrappers
 from werkzeug.security import check_password_hash
 
 import config
@@ -22,25 +22,13 @@ def authorized_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = get_token(request)
+        # TODO: figure out a way to not do this weird validation
+        if type(token) is not str:
+            return token
 
-        if not token:
-            return {
-                "status_code": 401,
-                "message": "Missing authorization bearer token",
-            }, 401
-
-        try:
-            data = decode_jwt(token)
-        except jwt.exceptions.ExpiredSignatureError:
-            return {
-                "status_code": 403,
-                "message": "Expired authorization token",
-            }, 403
-        except jwt.exceptions.InvalidTokenError:
-            return {
-                "status_code": 401,
-                "message": "Invalid authorization token",
-            }, 401
+        data = decode_jwt(token)
+        if type(data) is not dict:
+            return data
 
         user = UserProfile.query.filter_by(public_id=data.get("public_id")).first()
 
@@ -130,9 +118,12 @@ def register():
 
     # allow an admin user to register another admin user
     token = get_token(request)
-    if token and user_data.get("admin"):
+    if type(token) is str and user_data.get("admin"):
         try:
             data = decode_jwt(token)
+            if type(data) is not dict:
+                return data
+
             user = UserProfile.query.filter_by(public_id=data["public_id"]).first()
             if user.admin:
                 new_user_profile.admin = True
@@ -151,12 +142,8 @@ def register():
 @auth_blueprint.route("/logout", methods=["GET"])
 def logout():
     token = get_token(request)
-
-    if not token:
-        return {
-            "status_code": 401,
-            "message": "Missing authorization bearer token",
-        }, 401
+    if type(token) is not str:
+        return token
 
     whited = JWTWhitelist.query.filter_by(token=token).first()
     if not whited:
@@ -194,18 +181,47 @@ def clear_user_jwt(user_id: int):
 
 
 def get_token(current_request):
+    error_response = make_response(
+        (
+            {
+                "status_code": 401,
+                "message": "Missing authorization bearer token",
+            },
+            401,
+        )
+    )
     if "Authorization" not in current_request.headers:
-        return None
+        return error_response
 
     bearer = current_request.headers["Authorization"]
     if len(bearer.split(" ")) < 2:
-        return None
+        return error_response
 
     token = bearer.split(" ")[1]
     return token
 
 
 def decode_jwt(token):
-    data = jwt.decode(bytes(token, "utf-8"), config.SECRET_KEY, config.JWT_ALGORITHMS)
-
+    try:
+        data = jwt.decode(
+            bytes(token, "utf-8"), config.SECRET_KEY, config.JWT_ALGORITHMS
+        )
+    except jwt.exceptions.ExpiredSignatureError:
+        return make_response(
+            (
+                {
+                    "status_code": 403,
+                    "message": "Expired authorization token",
+                },
+                403,
+            )
+        )
+    except jwt.exceptions.InvalidTokenError:
+        return make_response(
+            {
+                "status_code": 401,
+                "message": "Invalid authorization token",
+            },
+            401,
+        )
     return data
