@@ -29,7 +29,7 @@ class TestAdmin(BaseTest):
             200, res.status_code, url_prefix + "/users/<public_id>/promote should exist"
         )
 
-        admin_value = res.json["admin"]
+        admin_value = res.json["user"]["admin"]
         self.assertEqual(True, admin_value, "User should be promoted to admin")
 
     def test_promote_non_existing_user_to_admin_returns_not_found(self):
@@ -39,17 +39,17 @@ class TestAdmin(BaseTest):
         )
         self.assertEqual("User not found", res.json["message"])
 
-    def test_demote_existing_user_to_admin_returns_ok(self):
+    def test_demote_existing_user_from_admin_returns_ok(self):
         self.create_user("not_admin", "1234", "Not Admin", True)
         res = self.client.put(url_prefix + "/users/%s/demote" % self.user_public_id)
         self.assertEqual(
             200, res.status_code, url_prefix + "/users/<public_id>/demote should exist"
         )
 
-        admin_value = res.json["admin"]
+        admin_value = res.json["user"]["admin"]
         self.assertEqual(False, admin_value, "User should be demoted to normal")
 
-    def test_demote_non_existing_user_to_admin_returns_not_found(self):
+    def test_demote_non_existing_user_from_admin_returns_not_found(self):
         res = self.client.put(url_prefix + "/users/%s/demote" % "not_good_id")
         self.assertEqual(
             404, res.status_code, "Trying to demote non existing user returns 404"
