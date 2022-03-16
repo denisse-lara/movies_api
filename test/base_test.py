@@ -47,7 +47,7 @@ class BaseTest(unittest.TestCase):
             )
             self.username = username
             self.password = password
-            self.display_name = password
+            self.display_name = display_name
 
             self.db.session.add(user)
             self.db.session.commit()
