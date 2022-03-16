@@ -30,9 +30,7 @@ def authorized_admin(f):
             }, 401
 
         try:
-            data = jwt.decode(
-                bytes(token, "utf-8"), config.SECRET_KEY, config.JWT_ALGORITHMS
-            )
+            data = decode_jwt(token)
         except jwt.exceptions.ExpiredSignatureError:
             return {
                 "status_code": 403,
@@ -130,6 +128,18 @@ def register():
             "status_code": 500,
         }, 500
 
+    # allow an admin user to register another admin user
+    token = get_token(request)
+    if token and user_data.get("admin"):
+        try:
+            data = decode_jwt(token)
+            user = UserProfile.query.filter_by(public_id=data["public_id"]).first()
+            if user.admin:
+                new_user_profile.admin = True
+                db.session.commit()
+        except:  # noqa
+            pass
+
     user_schema = UserProfileSchema(exclude=["admin", "banned"])
 
     return {
@@ -193,3 +203,9 @@ def get_token(current_request):
 
     token = bearer.split(" ")[1]
     return token
+
+
+def decode_jwt(token):
+    data = jwt.decode(bytes(token, "utf-8"), config.SECRET_KEY, config.JWT_ALGORITHMS)
+
+    return data

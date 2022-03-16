@@ -49,6 +49,30 @@ class TestAuth(BaseTest):
             500, res.status_code, "Should not register two users with the same username"
         )
 
+    def test_register_admin_user_with_admin_user_returns_created(self):
+        res = self.client.get(
+            url_prefix + "/login",
+            headers={"Authorization": get_encoded_authorization("admin:admin")},
+        )
+        token = res.json["token"]
+        admin_auth = get_encoded_bearer(token)
+
+        payload = {
+            "username": "admin_user",
+            "password": "safe-password123",
+            "admin": True,
+        }
+        res = self.client.post(
+            url_prefix + "/register",
+            json=payload,
+            headers={"Authorization": admin_auth},
+        )
+        self.assertEqual(201, res.status_code, "Valid registration returns 201")
+
+        with self.app.app_context():
+            created_user = UserProfile.query.filter_by(username="admin_user").first()
+            self.assertEqual(True, created_user.admin, "Created user should be admin")
+
     def test_register_user_with_incomplete_data(self):
         # no password
         payload = {"username": "normal_user"}
@@ -189,4 +213,4 @@ def get_encoded_authorization(credentials):
 
 
 def get_encoded_bearer(token):
-    return f"Bearer %s" % base64.b64encode(bytes(token, "utf-8")).decode("utf-8")
+    return f"Bearer %s" % token
