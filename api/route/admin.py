@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, json, request
 from api.model.movie import Movie
 from api.model.user_profile import UserProfile
 from api.route.auth import authorized_admin, clear_user_jwt
+from api.route.movie import find_movie
 from api.schema.movie import MovieSchema
 from api.schema.user_profile import UserProfileSchema
 from app import db
@@ -24,20 +25,6 @@ def find_user(f):
             return jsonify({"message": "User not found", "status_code": 404}), 404
 
         return f(user, *args, **kwargs)
-
-    return decorated
-
-
-def find_movie(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        movie_id = kwargs.get("public_id", "")
-        movie = Movie.query.filter_by(public_id=movie_id).first()
-
-        if not movie:
-            return jsonify({"message": "Movie not found", "status_code": 404}), 404
-
-        return f(movie, *args, **kwargs)
 
     return decorated
 

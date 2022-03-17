@@ -1,15 +1,29 @@
 import os
+from functools import wraps
 
 from flask import Blueprint, jsonify, json
 
 from api.model.movie import Movie
-from api.route.admin import find_movie
 from api.route.auth import authorized_user
 from api.schema.movie import MovieSchema
 from app import db
 
 url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "movies")
 movie_blueprint = Blueprint("movies", __name__, url_prefix=url_prefix)
+
+
+def find_movie(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        movie_id = kwargs.get("public_id", "")
+        movie = Movie.query.filter_by(public_id=movie_id).first()
+
+        if not movie:
+            return jsonify({"message": "Movie not found", "status_code": 404}), 404
+
+        return f(movie, *args, **kwargs)
+
+    return decorated
 
 
 @movie_blueprint.route("", methods=["GET"])
