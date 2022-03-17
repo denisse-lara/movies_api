@@ -129,3 +129,5 @@ def delete_user(user, public_id):
         jsonify({"message": "User '%s' deleted" % username}),
         200,
     )
+
+

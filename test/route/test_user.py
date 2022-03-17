@@ -1,3 +1,4 @@
+from api.model.movie import Movie
 from api.model.user_profile import UserProfile
 from api.route.user import url_prefix
 from api.route.auth import url_prefix as auth_prefix
@@ -138,6 +139,51 @@ class TestUser(BaseTest):
                 "Maria",
                 "Non authorized operation should not change the data",
             )
+
+    def test_user_retrieve_liked_movies_returns_ok(self):
+        with self.app.app_context():
+            self.db.session.add(Movie(title="Movie Title", release_year=2010))
+            self.db.session.add(Movie(title="Movie Title", release_year=2010))
+            self.db.session.add(Movie(title="Movie Title", release_year=2010))
+            user = UserProfile.query.filter_by(username=self.username).first()
+
+            movies = Movie.query.all()
+            for movie in movies:
+                user.liked_movies.append(movie)
+            self.db.session.commit()
+
+        res = self.client.get(
+            url_prefix + "/%s/movies" % self.user_public_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/<public_id>/movies returns 200"
+        )
+
+        movies = res.get_json()
+        self.assertEqual(3, len(movies))
+
+    def test_admin_retrieve_user_liked_movies_returns_ok(self):
+        with self.app.app_context():
+            movie = Movie(title="Movie Title", release_year=2010)
+            self.db.session.add(movie)
+            user = UserProfile.query.filter_by(username=self.username).first()
+            user.liked_movies.append(movie)
+            self.db.session.commit()
+
+        original_user_public_id = self.user_public_id
+        self.create_user("admin", "admin", admin=True)
+        self._set_login_info()
+        res = self.client.get(
+            url_prefix + "/%s/movies" % original_user_public_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/<public_id>/movies returns 200"
+        )
+
+        movies = res.get_json()
+        self.assertEqual(1, len(movies))
 
     def _set_login_info(self):
         login_auth = get_basic_auth("%s:%s" % (self.username, self.password))
