@@ -185,34 +185,46 @@ def add_movie():
     return jsonify(json.loads(movie_schema.dumps(movie))), 201
 
 
-@admin_blueprint.route("/movies/<public_id>", methods=["PUT"])
+@admin_blueprint.route("/movies/<public_id>", methods=["PUT", "DELETE"])
 @find_movie
 @authorized_admin
 def update_movie(movie, public_id):
-    movie_data = request.get_json()
+    response = ""
+    if request.method == "PUT":
+        movie_data = request.get_json()
 
-    if (
-        "title" in movie_data
-        and movie_data["title"] is not None
-        and movie_data["title"] != ""
-    ):
-        movie.title = movie_data["title"]
+        if (
+                "title" in movie_data
+                and movie_data["title"] is not None
+                and movie_data["title"] != ""
+        ):
+            movie.title = movie_data["title"]
 
-    if (
-        "release_year" in movie_data
-        and movie_data["release_year"] is not None
-        and movie_data["release_year"] != ""
-    ):
-        movie.release_year = movie_data["release_year"]
+        if (
+                "release_year" in movie_data
+                and movie_data["release_year"] is not None
+                and movie_data["release_year"] != ""
+        ):
+            movie.release_year = movie_data["release_year"]
 
-    if (
-        "poster_img_url" in movie_data
-        and movie_data["poster_img_url"] is not None
-        and movie_data["poster_img_url"] != ""
-    ):
-        movie.poster_img_url = movie_data["poster_img_url"]
+        if (
+                "poster_img_url" in movie_data
+                and movie_data["poster_img_url"] is not None
+                and movie_data["poster_img_url"] != ""
+        ):
+            movie.poster_img_url = movie_data["poster_img_url"]
 
-    db.session.commit()
+        db.session.commit()
 
-    movie_schema = MovieSchema()
-    return jsonify(json.loads(movie_schema.dumps(movie))), 200
+        movie_schema = MovieSchema()
+        response = json.loads(movie_schema.dumps(movie))
+
+    if request.method == "DELETE":
+        response = {
+            "message": "Movie '%s' deleted" % movie.title,
+            "status_code": 200
+        }
+        db.session.delete(movie)
+        db.session.commit()
+
+    return jsonify(response), 200

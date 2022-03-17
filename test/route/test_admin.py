@@ -248,6 +248,26 @@ class TestAdmin(BaseTest):
             404, res.status_code, "Admin modifying non existing movie returns 404"
         )
 
+    def test_admin_delete_existing_movie_returns_ok(self):
+        self.movie_id = ""
+        with self.app.app_context():
+            movie = Movie(title="Movie Title", release_year=2011)
+            self.db.session.add(movie)
+            self.db.session.commit()
+            self.movie_id = movie.public_id
+
+        res = self.client.delete(
+            url_prefix + "/movies/%s" % self.movie_id,
+            headers={"Authorization": f"Bearer {self.admin_token}"}
+        )
+        self.assertEqual(
+            200, res.status_code, "Admin deleting movie returns 404"
+        )
+
+        with self.app.app_context():
+            movie = Movie.query.filter_by(public_id=self.movie_id).first()
+            self.assertEqual(None, movie, "Movie should not exist")
+
     # @unittest.skip
     def test_performing_operations_without_authorization_token_returns_unauthorized(
         self,
