@@ -211,7 +211,9 @@ class TestAdmin(BaseTest):
             headers={"Authorization": f"Bearer {token}"},
             json=movie,
         )
-        self.assertEqual(403, res.status_code, "Non admin adding a movie should return 403")
+        self.assertEqual(
+            403, res.status_code, "Non admin adding a movie should return 403"
+        )
 
     # @unittest.skip
     def test_admin_update_existing_movie_returns_ok(self):
@@ -229,7 +231,9 @@ class TestAdmin(BaseTest):
             json=new_values,
         )
         movie_json = res.get_json()
-        self.assertEqual(200, res.status_code, "Admin modifying movie should return 200")
+        self.assertEqual(
+            200, res.status_code, "Admin modifying movie should return 200"
+        )
         self.assertEqual("New Title", movie_json["title"])
         self.assertEqual(2010, movie_json["release_year"])
 
@@ -256,11 +260,9 @@ class TestAdmin(BaseTest):
 
         res = self.client.delete(
             url_prefix + "/movies/%s" % self.movie_id,
-            headers={"Authorization": f"Bearer {self.admin_token}"}
+            headers={"Authorization": f"Bearer {self.admin_token}"},
         )
-        self.assertEqual(
-            200, res.status_code, "Admin deleting movie returns 404"
-        )
+        self.assertEqual(200, res.status_code, "Admin deleting movie returns 404")
 
         with self.app.app_context():
             movie = Movie.query.filter_by(public_id=self.movie_id).first()

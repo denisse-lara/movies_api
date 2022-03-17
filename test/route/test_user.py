@@ -15,7 +15,9 @@ class TestUser(BaseTest):
             url_prefix + "/%s" % self.user_public_id,
             headers={"Authorization": self.authorization},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/<public_id> should return 200"
+        )
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -36,7 +38,9 @@ class TestUser(BaseTest):
             url_prefix + "/%s" % original_user_public_id,
             headers={"Authorization": self.authorization},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/<public_id> should return 200"
+        )
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -80,7 +84,9 @@ class TestUser(BaseTest):
             headers={"Authorization": self.authorization},
             json={"display_name": "Maria"},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/<public_id> should return 200"
+        )
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -97,7 +103,9 @@ class TestUser(BaseTest):
             headers={"Authorization": self.authorization},
             json={"display_name": "Maria"},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
+        self.assertEqual(
+            200, res.status_code, url_prefix + "/<public_id> should return 200"
+        )
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
