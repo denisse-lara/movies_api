@@ -77,7 +77,7 @@ class TestMovie(BaseTest):
             200, res.status_code, "User liking one movie should return 200"
         )
         movie = res.get_json()
-        self.assertEqual(1, movie["likes"], "Movie likes should increase by 1")
+        self.assertEqual(1, movie["movie"]["likes"], "Movie likes should increase by 1")
 
     def test_user_can_only_like_a_movie_once(self):
         self.client.put(
@@ -90,7 +90,7 @@ class TestMovie(BaseTest):
         )
         movie = res.get_json()
         self.assertEqual(
-            1, movie["likes"], "User should only be able to like a movie once"
+            1, movie["movie"]["likes"], "User should only be able to like a movie once"
         )
 
     def test_unauthenticated_user_like_a_movie_returns_unauthorized(self):
@@ -135,7 +135,7 @@ class TestMovie(BaseTest):
             200, res.status_code, "User unliking one movie should return 200"
         )
         movie = res.get_json()
-        self.assertEqual(1, movie["likes"], "Movie likes should decrease by 1")
+        self.assertEqual(1, movie["movie"]["likes"], "Movie likes should decrease by 1")
 
     def test_user_unlike_a_movie_that_they_have_not_liked_does_nothing(self):
         self.client.put(
@@ -152,7 +152,7 @@ class TestMovie(BaseTest):
             200, res.status_code, "User unliking a movie they didn't like does nothing"
         )
         movie = res.get_json()
-        self.assertEqual(1, movie["likes"], "Movie likes should decrease by 1")
+        self.assertEqual(1, movie["movie"]["likes"], "Movie likes should decrease by 1")
 
     def test_unauthenticated_user_unlike_a_movie_returns_unauthorized(self):
         res = self.client.delete(
