@@ -33,7 +33,7 @@ def get_movie(user, movie, public_id):
 @find_movie
 @authorized_user
 def like_movie(user, movie, public_id):
-    movie_schema = MovieSchema()
+    movie_schema = MovieSchema(exclude=["release_year", "poster_img_url"])
     user.liked_movies.append(movie)
     db.session.commit()
     return jsonify(json.loads(movie_schema.dumps(movie))), 200
@@ -43,7 +43,7 @@ def like_movie(user, movie, public_id):
 @find_movie
 @authorized_user
 def unlike_movie(user, movie, public_id):
-    movie_schema = MovieSchema()
+    movie_schema = MovieSchema(exclude=["release_year", "poster_img_url"])
 
     if user.liked_movies.count(movie) > 0:
         user.liked_movies.remove(movie)
