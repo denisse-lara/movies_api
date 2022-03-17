@@ -6,6 +6,7 @@ from api.model.movie import Movie
 from api.route.admin import find_movie
 from api.route.auth import authorized_user
 from api.schema.movie import MovieSchema
+from app import db
 
 url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "movies")
 movie_blueprint = Blueprint("movies", __name__, url_prefix=url_prefix)
@@ -25,4 +26,14 @@ def get_all_movies(user):
 @authorized_user
 def get_movie(user, movie, public_id):
     movie_schema = MovieSchema()
+    return jsonify(json.loads(movie_schema.dumps(movie))), 200
+
+
+@movie_blueprint.route("/<public_id>/like", methods=["PUT"])
+@find_movie
+@authorized_user
+def like_movie(user, movie, public_id):
+    movie_schema = MovieSchema()
+    user.liked_movies.append(movie)
+    db.session.commit()
     return jsonify(json.loads(movie_schema.dumps(movie))), 200

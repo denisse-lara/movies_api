@@ -194,23 +194,23 @@ def update_movie(movie, public_id):
         movie_data = request.get_json()
 
         if (
-                "title" in movie_data
-                and movie_data["title"] is not None
-                and movie_data["title"] != ""
+            "title" in movie_data
+            and movie_data["title"] is not None
+            and movie_data["title"] != ""
         ):
             movie.title = movie_data["title"]
 
         if (
-                "release_year" in movie_data
-                and movie_data["release_year"] is not None
-                and movie_data["release_year"] != ""
+            "release_year" in movie_data
+            and movie_data["release_year"] is not None
+            and movie_data["release_year"] != ""
         ):
             movie.release_year = movie_data["release_year"]
 
         if (
-                "poster_img_url" in movie_data
-                and movie_data["poster_img_url"] is not None
-                and movie_data["poster_img_url"] != ""
+            "poster_img_url" in movie_data
+            and movie_data["poster_img_url"] is not None
+            and movie_data["poster_img_url"] != ""
         ):
             movie.poster_img_url = movie_data["poster_img_url"]
 
@@ -220,10 +220,7 @@ def update_movie(movie, public_id):
         response = json.loads(movie_schema.dumps(movie))
 
     if request.method == "DELETE":
-        response = {
-            "message": "Movie '%s' deleted" % movie.title,
-            "status_code": 200
-        }
+        response = {"message": "Movie '%s' deleted" % movie.title, "status_code": 200}
         db.session.delete(movie)
         db.session.commit()
 
