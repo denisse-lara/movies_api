@@ -1,10 +1,12 @@
 import os
 from functools import wraps
 
-from flask import Blueprint, jsonify, json
+from flask import Blueprint, jsonify, json, request
 
+from api.model.movie import Movie
 from api.model.user_profile import UserProfile
 from api.route.auth import authorized_admin, clear_user_jwt
+from api.schema.movie import MovieSchema
 from api.schema.user_profile import UserProfileSchema
 from app import db
 
@@ -131,3 +133,39 @@ def delete_user(user, public_id):
     )
 
 
+@admin_blueprint.route("/movies", methods=["POST"])
+@authorized_admin
+def add_movie():
+    movie_data = request.get_json()
+
+    missing_fields = []
+
+    if "title" not in movie_data:
+        missing_fields.append("title")
+
+    if "release_year" not in movie_data:
+        missing_fields.append("release_year")
+
+    if missing_fields:
+        return (
+            jsonify(
+                {
+                    "message": "Missing required fields",
+                    "description": "Tried creating a movie without the field(s) %s"
+                    % missing_fields,
+                    "status_code": 422,
+                }
+            ),
+            422,
+        )
+
+    movie = Movie(
+        title=movie_data["title"],
+        release_year=movie_data["release_year"],
+        poster_img_url=movie_data.get("poster_img_url", ""),
+    )
+    db.session.add(movie)
+    db.session.commit()
+
+    movie_schema = MovieSchema()
+    return jsonify(json.loads(movie_schema.dumps(movie))), 201

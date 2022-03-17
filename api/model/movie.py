@@ -6,8 +6,10 @@ from app import db
 
 
 class Movie(db.Model):
+    __tablename__ = "movie"
+
     id = db.Column(db.Integer, primary_key=True)
-    public_id = db.Column(db.String(50), unique=True, nullable=True)
+    public_id = db.Column(db.String(50), unique=True, nullable=False)
     title = db.Column(db.String(255), nullable=False)
     release_year = db.Column(db.Integer)
     poster_img_url = db.Column(db.String(255))

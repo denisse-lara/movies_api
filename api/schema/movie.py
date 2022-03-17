@@ -10,7 +10,6 @@ class MovieSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         exclude = ("id",)
 
-    public_id = ma.auto_field()
     likes = fields.Method("get_likes", deserialize="load_likes")
 
     def get_likes(self, obj):

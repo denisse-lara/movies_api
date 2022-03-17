@@ -1,5 +1,6 @@
 from flask import json
 
+from api.model.movie import Movie
 from api.route.admin import url_prefix
 from test.base_test import BaseTest
 from api.model.user_profile import UserProfile
@@ -156,6 +157,47 @@ class TestAdmin(BaseTest):
             404, res.status_code, "Trying to delete non existing user returns 404"
         )
         self.assertEqual("User not found", res.json["message"])
+
+    def test_admin_add_a_movie_returns_ok(self):
+        movie = {"title": "The Lord of the Rings", "release_year": 2001}
+
+        res = self.client.post(
+            url_prefix + "/movies",
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+            json=movie,
+        )
+        self.assertEqual(201, res.status_code, "Admin adding a movie returns 201")
+        movie_json = res.get_json()
+        self.assertEqual(movie["title"], movie_json["title"])
+
+    def test_admin_add_movie_without_required_param_returns_error(self):
+        movie = {"release_year": 2001}
+
+        res = self.client.post(
+            url_prefix + "/movies",
+            headers={"Authorization": f"Bearer {self.admin_token}"},
+            json=movie,
+        )
+        self.assertEqual(422, res.status_code)
+        response = res.get_json()
+        self.assertEqual("Missing required fields", response["message"])
+        self.assertIn("title", response["description"])
+
+    def test_non_admin_add_movie_returns_forbidden(self):
+        self.create_user("created", "1234", "created")
+        authorization = get_basic_auth("created:1234")
+        res = self.client.get(
+            auth_prefix + "/login",
+            headers={"Authorization": authorization},
+        )
+        token = res.json["token"]
+        movie = {"title": "The Lord of the Rings", "release_year": 2001}
+        res = self.client.post(
+            url_prefix + "/movies",
+            headers={"Authorization": f"Bearer {token}"},
+            json=movie,
+        )
+        self.assertEqual(403, res.status_code, "Non admin adding a movie returns 403")
 
     def test_performing_operations_without_authorization_token_returns_unauthorized(
         self,
