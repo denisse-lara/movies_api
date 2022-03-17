@@ -1,5 +1,3 @@
-import unittest
-
 from flask import json
 
 from api.model.movie import Movie
@@ -144,7 +142,7 @@ class TestAdmin(BaseTest):
             headers={"Authorization": f"Bearer {self.admin_token}"},
         )
         self.assertEqual(
-            404, res.status_code, "Trying to unban non existing user returns 404"
+            404, res.status_code, "Trying to unban non existing user should return 404"
         )
         self.assertEqual("User not found", res.json["message"])
 
@@ -167,7 +165,7 @@ class TestAdmin(BaseTest):
             headers={"Authorization": f"Bearer {self.admin_token}"},
         )
         self.assertEqual(
-            404, res.status_code, "Trying to delete non existing user returns 404"
+            404, res.status_code, "Trying to delete non existing user should return 404"
         )
         self.assertEqual("User not found", res.json["message"])
 
@@ -180,7 +178,7 @@ class TestAdmin(BaseTest):
             headers={"Authorization": f"Bearer {self.admin_token}"},
             json=movie,
         )
-        self.assertEqual(201, res.status_code, "Admin adding a movie returns 201")
+        self.assertEqual(201, res.status_code, "Admin adding a movie should return 201")
         movie_json = res.get_json()
         self.assertEqual(movie["title"], movie_json["title"])
 
@@ -213,7 +211,7 @@ class TestAdmin(BaseTest):
             headers={"Authorization": f"Bearer {token}"},
             json=movie,
         )
-        self.assertEqual(403, res.status_code, "Non admin adding a movie returns 403")
+        self.assertEqual(403, res.status_code, "Non admin adding a movie should return 403")
 
     # @unittest.skip
     def test_admin_update_existing_movie_returns_ok(self):
@@ -231,7 +229,7 @@ class TestAdmin(BaseTest):
             json=new_values,
         )
         movie_json = res.get_json()
-        self.assertEqual(200, res.status_code, "Admin modifying movie returns 200")
+        self.assertEqual(200, res.status_code, "Admin modifying movie should return 200")
         self.assertEqual("New Title", movie_json["title"])
         self.assertEqual(2010, movie_json["release_year"])
 
@@ -245,7 +243,7 @@ class TestAdmin(BaseTest):
             json=new_values,
         )
         self.assertEqual(
-            404, res.status_code, "Admin modifying non existing movie returns 404"
+            404, res.status_code, "Admin modifying non existing movie should return 404"
         )
 
     def test_admin_delete_existing_movie_returns_ok(self):
@@ -276,11 +274,11 @@ class TestAdmin(BaseTest):
         res = self.client.get(
             url_prefix + "/users",
         )
-        self.assertEqual(401, res.status_code, "Missing token should return 401")
+        self.assertEqual(401, res.status_code, "Missing token should should return 401")
         res = self.client.put(
             url_prefix + "/users/%s/promote" % self.user_public_id,
         )
-        self.assertEqual(401, res.status_code, "Missing token should return 401")
+        self.assertEqual(401, res.status_code, "Missing token should should return 401")
         res = self.client.put(
             url_prefix + "/users/%s/demote" % self.user_public_id,
         )

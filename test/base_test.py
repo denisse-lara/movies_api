@@ -1,8 +1,10 @@
+import base64
 import unittest
 
 from app import create_app, db
 
 from api.model.user_profile import UserProfile
+from api.route.auth import url_prefix as auth_prefix
 
 
 def setup_env():
@@ -53,3 +55,18 @@ class BaseTest(unittest.TestCase):
             self.db.session.commit()
 
             self.user_public_id = user.public_id
+
+    def _set_login_info(self):
+        login_auth = get_basic_auth("%s:%s" % (self.username, self.password))
+        res = self.client.get(
+            auth_prefix + "/login", headers={"Authorization": login_auth}
+        )
+        self.authorization = get_bearer(res.json["token"])
+
+
+def get_basic_auth(credentials):
+    return f"Basic %s" % base64.b64encode(bytes(credentials, "utf-8")).decode("utf-8")
+
+
+def get_bearer(token):
+    return f"Bearer %s" % token

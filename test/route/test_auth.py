@@ -1,13 +1,11 @@
-import base64
 import jwt
 
 import config
 
-from urllib.parse import unquote
 from flask import json
 
 from api.route.auth import url_prefix
-from test.base_test import BaseTest
+from test.base_test import BaseTest, get_bearer, get_basic_auth
 from api.model.user_profile import UserProfile
 
 
@@ -23,7 +21,7 @@ class TestAuth(BaseTest):
             "display_name": "Normal User",
         }
         res = self.client.post(url_prefix + "/register", json=payload)
-        self.assertEqual(201, res.status_code, "Valid registration returns 201")
+        self.assertEqual(201, res.status_code, "Valid registration should return 201")
         self.assertIn(
             "user", res.json, "Registration response returns new user information"
         )
@@ -42,7 +40,7 @@ class TestAuth(BaseTest):
             "display_name": "Normal User",
         }
         res = self.client.post(url_prefix + "/register", json=payload)
-        self.assertEqual(201, res.status_code, "Valid registration returns 201")
+        self.assertEqual(201, res.status_code, "Valid registration should return 201")
 
         res = self.client.post(url_prefix + "/register", json=payload)
         self.assertEqual(
@@ -67,7 +65,7 @@ class TestAuth(BaseTest):
             json=payload,
             headers={"Authorization": admin_auth},
         )
-        self.assertEqual(201, res.status_code, "Valid registration returns 201")
+        self.assertEqual(201, res.status_code, "Valid registration should return 201")
 
         with self.app.app_context():
             created_user = UserProfile.query.filter_by(username="admin_user").first()
@@ -196,11 +194,3 @@ class TestAuth(BaseTest):
             url_prefix + "/logout", headers={"Authorization": authorization}
         )
         self.assertEqual(200, res.status_code)
-
-
-def get_basic_auth(credentials):
-    return f"Basic %s" % base64.b64encode(bytes(credentials, "utf-8")).decode("utf-8")
-
-
-def get_bearer(token):
-    return f"Bearer %s" % token

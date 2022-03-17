@@ -1,9 +1,7 @@
 from api.model.movie import Movie
 from api.model.user_profile import UserProfile
 from api.route.user import url_prefix
-from api.route.auth import url_prefix as auth_prefix
 from test.base_test import BaseTest
-from test.route.test_auth import get_basic_auth, get_bearer
 
 
 class TestUser(BaseTest):
@@ -17,7 +15,7 @@ class TestUser(BaseTest):
             url_prefix + "/%s" % self.user_public_id,
             headers={"Authorization": self.authorization},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> returns 200")
+        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -38,7 +36,7 @@ class TestUser(BaseTest):
             url_prefix + "/%s" % original_user_public_id,
             headers={"Authorization": self.authorization},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> returns 200")
+        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -82,7 +80,7 @@ class TestUser(BaseTest):
             headers={"Authorization": self.authorization},
             json={"display_name": "Maria"},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> returns 200")
+        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -99,7 +97,7 @@ class TestUser(BaseTest):
             headers={"Authorization": self.authorization},
             json={"display_name": "Maria"},
         )
-        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> returns 200")
+        self.assertEqual(200, res.status_code, url_prefix + "/<public_id> should return 200")
         info = res.get_json()
         self.assertEqual(
             info["display_name"],
@@ -122,7 +120,7 @@ class TestUser(BaseTest):
         self.assertEqual(
             403,
             res.status_code,
-            "Another user trying to change display_name returns 403",
+            "Another user trying to change display_name should return 403",
         )
 
         with self.app.app_context():
@@ -157,7 +155,7 @@ class TestUser(BaseTest):
             headers={"Authorization": self.authorization},
         )
         self.assertEqual(
-            200, res.status_code, url_prefix + "/<public_id>/movies returns 200"
+            200, res.status_code, url_prefix + "/<public_id>/movies should return 200"
         )
 
         movies = res.get_json()
@@ -179,15 +177,8 @@ class TestUser(BaseTest):
             headers={"Authorization": self.authorization},
         )
         self.assertEqual(
-            200, res.status_code, url_prefix + "/<public_id>/movies returns 200"
+            200, res.status_code, url_prefix + "/<public_id>/movies should return 200"
         )
 
         movies = res.get_json()
         self.assertEqual(1, len(movies))
-
-    def _set_login_info(self):
-        login_auth = get_basic_auth("%s:%s" % (self.username, self.password))
-        res = self.client.get(
-            auth_prefix + "/login", headers={"Authorization": login_auth}
-        )
-        self.authorization = get_bearer(res.json["token"])
