@@ -32,7 +32,7 @@ def authorized_admin(f):
 
         user = UserProfile.query.filter_by(public_id=data.get("public_id")).first()
 
-        if not user.admin:
+        if not user or not user.admin:
             return make_response(
                 (
                     {
