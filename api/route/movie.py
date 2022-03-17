@@ -36,7 +36,15 @@ def like_movie(user, movie, public_id):
     movie_schema = MovieSchema(exclude=["release_year", "poster_img_url"])
     user.liked_movies.append(movie)
     db.session.commit()
-    return jsonify(json.loads(movie_schema.dumps(movie))), 200
+    return (
+        jsonify(
+            {
+                "message": f"Movie '{movie.title}' liked",
+                "movie": json.loads(movie_schema.dumps(movie)),
+            }
+        ),
+        200,
+    )
 
 
 @movie_blueprint.route("/<public_id>/unlike", methods=["DELETE"])
@@ -49,4 +57,12 @@ def unlike_movie(user, movie, public_id):
         user.liked_movies.remove(movie)
 
     db.session.commit()
-    return jsonify(json.loads(movie_schema.dumps(movie))), 200
+    return (
+        jsonify(
+            {
+                "message": f"Movie '{movie.title}' unliked",
+                "movie": json.loads(movie_schema.dumps(movie)),
+            }
+        ),
+        200,
+    )
