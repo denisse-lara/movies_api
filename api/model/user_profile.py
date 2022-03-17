@@ -14,7 +14,7 @@ class UserProfile(db.Model):
     public_id = db.Column(db.String(50), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    display_name = db.Column(db.String(50))
+    name = db.Column(db.String(50))
     banned = db.Column(db.Boolean, nullable=False, default=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -32,7 +32,7 @@ class UserProfile(db.Model):
     def __repr__(self):
         return (
             f"UserProfile(username='{self.username}', password='{self.password}',"
-            f" display_name='{self.display_name}')"
+            f" name='{self.name}')"
         )
 
 

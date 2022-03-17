@@ -24,13 +24,18 @@ if __name__ == "__main__":
                 delimiter="\t",
             )
 
-            outputFile = open('movies.tsv', 'w', newline='')
+            outputFile = open("movies.tsv", "w", newline="")
             outputDictWriter = csv.DictWriter(outputFile, ["title", "release_year"])
             outputDictWriter.writeheader()
 
             for row in dict_reader:
                 if row["titleType"] == "movie":
-                    outputDictWriter.writerow({"title": row["originalTitle"], "release_year": row["startYear"]})
+                    outputDictWriter.writerow(
+                        {
+                            "title": row["originalTitle"],
+                            "release_year": row["startYear"],
+                        }
+                    )
             outputFile.close()
     except OSError:
         print("Download the IMDB file and rename it to data.tsv")

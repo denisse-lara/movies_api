@@ -18,7 +18,7 @@ class TestAuth(BaseTest):
         payload = {
             "username": "normal_user",
             "password": "safe-password123",
-            "display_name": "Normal User",
+            "name": "Normal User",
         }
         res = self.client.post(url_prefix + "/register", json=payload)
         self.assertEqual(201, res.status_code, "Valid registration should return 201")
@@ -31,13 +31,13 @@ class TestAuth(BaseTest):
             new_user["public_id"], "Response must include the user public_id"
         )
         self.assertEqual(new_user["username"], payload["username"])
-        self.assertEqual(new_user["display_name"], payload["display_name"])
+        self.assertEqual(new_user["name"], payload["name"])
 
     def test_register_user_with_same_username_returns_integrity_error(self):
         payload = {
             "username": "normal_user",
             "password": "safe-password123",
-            "display_name": "Normal User",
+            "name": "Normal User",
         }
         res = self.client.post(url_prefix + "/register", json=payload)
         self.assertEqual(201, res.status_code, "Valid registration should return 201")

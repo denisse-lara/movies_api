@@ -52,7 +52,7 @@ Users with admin authorization can modify movie's information, promote/demote ot
             {
                 "username": "created_with_admin",
                 "password": "password",
-                "display_name": "Display Name",
+                "name": "Display Name",
             }
             
 + Response 201 (application/json)
@@ -60,7 +60,7 @@ Users with admin authorization can modify movie's information, promote/demote ot
             {
                 "message": "User created",
                 "user": {
-                    "display_name": "Normal User",
+                    "name": "Normal User",
                     "public_id": "e18bdd1d-fe99-49a0-82b9-49180bd43504",
                     "username": "normal_user"
                 }
@@ -105,7 +105,7 @@ fetch any user's information.
 + Response 200 (application/json)
 
             {
-                "display_name": "Display Name",
+                "name": "Display Name",
                 "public_id": "45e8c566-96eb-4ded-b16e-5dcb70f23f8a",
                 "username": "username"
             }
@@ -123,13 +123,13 @@ A user can change their display name.
     + Body
 
             {
-                "display_name": "New Name",
+                "name": "New Name",
             }
 
 + Response 200 (application/json)
 
             {
-                "display_name": "New Name",
+                "name": "New Name",
                 "public_id": "45e8c566-96eb-4ded-b16e-5dcb70f23f8a",
                 "username": "username"
             }
@@ -243,7 +243,7 @@ List of all the registered users.
                 {
                     "admin": false,
                     "banned": false,
-                    "display_name": "Normal User",
+                    "name": "Normal User",
                     "public_id": "5d11aab5-90f0-424b-a5ab-591cc13805ed",
                     "username": "username"
                 }
@@ -269,7 +269,7 @@ Promote a user to admin.
                 "user": {
                     "admin": true,
                     "banned": false,
-                    "display_name": "Normal User",
+                    "name": "Normal User",
                     "public_id": "5d11aab5-90f0-424b-a5ab-591cc13805ed",
                     "username": "username"
                 }
@@ -305,7 +305,7 @@ Demote a user to normal.
                 "user": {
                     "admin": false,
                     "banned": false,
-                    "display_name": "Normal User",
+                    "name": "Normal User",
                     "public_id": "5d11aab5-90f0-424b-a5ab-591cc13805ed",
                     "username": "username"
                 }
@@ -341,7 +341,7 @@ Ban a user from logging in.
                 "user": {
                     "admin": false,
                     "banned": true,
-                    "display_name": "Normal User",
+                    "name": "Normal User",
                     "public_id": "5d11aab5-90f0-424b-a5ab-591cc13805ed",
                     "username": "username"
                 }
@@ -376,7 +376,7 @@ Unban a user from logging in.
                 "user": {
                     "admin": false,
                     "banned": false,
-                    "display_name": "Normal User",
+                    "name": "Normal User",
                     "public_id": "5d11aab5-90f0-424b-a5ab-591cc13805ed",
                     "username": "username"
                 }

@@ -134,7 +134,7 @@ def register():
         new_user_profile = UserProfile(
             username=user_data["username"],
             password=user_data["password"],
-            display_name=user_data.get("display_name", None),
+            name=user_data.get("name", None),
         )
         db.session.add(new_user_profile)
         db.session.commit()

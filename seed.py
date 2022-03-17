@@ -35,7 +35,7 @@ with app.app_context():
     admin = UserProfile(
         username="admin",
         password="admin",
-        display_name="Admin",
+        name="Admin",
         admin=True,
     )
     db.session.add(admin)
@@ -52,7 +52,7 @@ with app.app_context():
         new_user = UserProfile(
             username=username,
             password=password,
-            display_name=name,
+            name=name,
             admin=False,
             banned=banned,
         )

@@ -11,7 +11,7 @@ class TestUserProfileUnit(unittest.TestCase):
         self.user = UserProfile(
             username="admin_username",
             password="12345",
-            display_name="Admin",
+            name="Admin",
         )
 
     def test_str(self):
@@ -28,7 +28,7 @@ class TestUserProfileUnit(unittest.TestCase):
         """
         repr_user = repr(self.user)
         self.assertEqual(
-            "UserProfile(username='admin_username', password='12345', display_name='Admin')",
+            "UserProfile(username='admin_username', password='12345', name='Admin')",
             repr_user,
         )
 
@@ -41,7 +41,7 @@ class TestUserProfileInt(BaseTest):
         user = UserProfile(
             username="admin_username",
             password="12345",
-            display_name="Admin",
+            name="Admin",
         )
 
         with self.app.app_context():
@@ -76,7 +76,7 @@ class TestUserProfileInt(BaseTest):
         user = UserProfile(
             username="admin_username",
             password="12345",
-            display_name="Admin",
+            name="Admin",
         )
 
         with self.app.app_context():
@@ -97,7 +97,7 @@ class TestUserProfileInt(BaseTest):
         user = UserProfile(
             username="admin_username",
             password="12345",
-            display_name="Admin",
+            name="Admin",
         )
 
         with self.app.app_context():

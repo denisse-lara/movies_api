@@ -61,7 +61,7 @@ def get_user_profile(current_user, public_id):
 
     if request.method == "PUT":
         data = request.get_json()
-        user_info.display_name = data.get("display_name", user_info.display_name)
+        user_info.name = data.get("name", user_info.name)
         db.session.commit()
 
     return jsonify(json.loads(user_schema.dumps(user_info))), 200

@@ -33,7 +33,7 @@ def upgrade():
         sa.Column("public_id", sa.String(length=50), nullable=True),
         sa.Column("username", sa.String(length=50), nullable=False),
         sa.Column("password", sa.String(length=150), nullable=False),
-        sa.Column("display_name", sa.String(length=50), nullable=True),
+        sa.Column("name", sa.String(length=50), nullable=True),
         sa.Column("banned", sa.Boolean(), nullable=False),
         sa.Column("admin", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),

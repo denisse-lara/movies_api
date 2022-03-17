@@ -44,9 +44,9 @@ class TestMovieUnit(unittest.TestCase):
 class TestMovieInt(BaseTest):
     def setUp(self) -> None:
         super().setUp()
-        user1 = UserProfile(username="user", password="1234", display_name="user")
-        user2 = UserProfile(username="user1", password="1234", display_name="user")
-        user3 = UserProfile(username="user2", password="1234", display_name="user")
+        user1 = UserProfile(username="user", password="1234", name="user")
+        user2 = UserProfile(username="user1", password="1234", name="user")
+        user3 = UserProfile(username="user2", password="1234", name="user")
         movie = Movie(title="The Lord of the Rings", release_year=2001)
 
         with self.app.app_context():
