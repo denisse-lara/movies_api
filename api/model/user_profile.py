@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash
 from sqlalchemy import event
 
@@ -16,6 +17,14 @@ class UserProfile(db.Model):
     display_name = db.Column(db.String(50))
     banned = db.Column(db.Boolean, nullable=False, default=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
+
+    liked_movies = db.relationship(
+        "Movie",
+        lazy="select",
+        secondary="movie_like",
+        order_by="Movie.title",
+        backref=backref("likes", lazy=True),
+    )
 
     def __str__(self):
         return f"'{self.username}'\tid: {self.id}\tadmin: {self.admin}"
