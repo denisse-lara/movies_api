@@ -89,7 +89,9 @@ class TestMovie(BaseTest):
             headers={"Authorization": self.authorization},
         )
         movie = res.get_json()
-        self.assertEqual(1, movie["likes"], "User should only be able to like a movie once")
+        self.assertEqual(
+            1, movie["likes"], "User should only be able to like a movie once"
+        )
 
     def test_unauthenticated_user_like_a_movie_returns_unauthorized(self):
         res = self.client.put(
@@ -112,3 +114,63 @@ class TestMovie(BaseTest):
             "Liking a movie that doesn't exist should return 404",
         )
 
+    def test_user_unlike_a_movie_returns_ok(self):
+        # liking a single movie with two users
+        self.client.put(
+            url_prefix + "/%s/like" % self.movie_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.create_user("Another", "User")
+        self._set_login_info()
+        self.client.put(
+            url_prefix + "/%s/like" % self.movie_id,
+            headers={"Authorization": self.authorization},
+        )
+
+        res = self.client.put(
+            url_prefix + "/%s/unlike" % self.movie_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.assertEqual(
+            200, res.status_code, "User unliking one movie should return 200"
+        )
+        movie = res.get_json()
+        self.assertEqual(1, movie["likes"], "Movie likes should decrease by 1")
+
+    def test_user_unlike_a_movie_that_they_have_not_liked_does_nothing(self):
+        self.client.put(
+            url_prefix + "/%s/like" % self.movie_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.create_user("Another", "User")
+        self._set_login_info()
+        res = self.client.put(
+            url_prefix + "/%s/unlike" % self.movie_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.assertEqual(
+            200, res.status_code, "User unliking a movie they didn't like does nothing"
+        )
+        movie = res.get_json()
+        self.assertEqual(1, movie["likes"], "Movie likes should decrease by 1")
+
+    def test_unauthenticated_user_unlike_a_movie_returns_unauthorized(self):
+        res = self.client.put(
+            url_prefix + "/%s/unlike" % self.movie_id,
+        )
+        self.assertEqual(
+            401,
+            res.status_code,
+            "Unauthenticated user unliking one movie should return 401",
+        )
+
+    def test_user_unlike_not_existing_movie_returns_not_found(self):
+        res = self.client.put(
+            url_prefix + "/%s/not_valid" % self.movie_id,
+            headers={"Authorization": self.authorization},
+        )
+        self.assertEqual(
+            404,
+            res.status_code,
+            "Liking a movie that doesn't exist should return 404",
+        )

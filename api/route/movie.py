@@ -37,3 +37,16 @@ def like_movie(user, movie, public_id):
     user.liked_movies.append(movie)
     db.session.commit()
     return jsonify(json.loads(movie_schema.dumps(movie))), 200
+
+
+@movie_blueprint.route("/<public_id>/unlike", methods=["PUT"])
+@find_movie
+@authorized_user
+def unlike_movie(user, movie, public_id):
+    movie_schema = MovieSchema()
+
+    if user.liked_movies.count(movie) > 0:
+        user.liked_movies.remove(movie)
+
+    db.session.commit()
+    return jsonify(json.loads(movie_schema.dumps(movie))), 200
