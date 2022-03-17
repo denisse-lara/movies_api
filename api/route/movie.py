@@ -1,10 +1,13 @@
+import base64
 import os
 from functools import wraps
 
-from flask import Blueprint, jsonify, json
+from flask import Blueprint, jsonify, json, request, make_response
+from sqlalchemy import desc, asc
 
 from api.model.movie import Movie
 from api.route.auth import authorized_user
+from api.route.paginate import paginate
 from api.schema.movie import MovieSchema
 from app import db
 
@@ -26,13 +29,46 @@ def find_movie(f):
     return decorated
 
 
+def movie_query_filter(query, args):
+    if "release_year" in args and type(json.loads(args.get("release_year"))) is int:
+        query = query.filter_by(release_year=json.loads(args.get("release_year")))
+
+    if "title" in args:
+        query = query.filter(Movie.title.ilike(f"%{args.get('title').strip()}%"))
+
+    return query
+
+
+def movie_query_sort_by(query, args):
+    if "sort" in args:
+        sorting = args.get("sort").split(",")
+        for by in sorting:
+            order = desc if "-" in by else asc
+            if "title" in by:
+                query = query.order_by(order(Movie.title))
+            elif "release_year" in by:
+                query = query.order_by(order(Movie.release_year))
+
+    return query
+
+
 @movie_blueprint.route("", methods=["GET"])
 @authorized_user
 def get_all_movies(user):
-    movies = Movie.query.all()
     movie_schema = MovieSchema(many=True)
-    movies = movie_schema.dumps(movies)
-    return jsonify(json.loads(movies)), 200
+    query = Movie.query
+    query = movie_query_filter(query, request.args)
+    query = movie_query_sort_by(query, request.args)
+
+    if "page" in request.args:
+        page = request.args.get("page", 1, type=int)
+        results = make_response(paginate(query, movie_schema, page, "movies"))
+        results = make_response(results)
+    else:
+        movies = query.all()
+        results = make_response((jsonify(json.loads(movie_schema.dumps(movies))), 200))
+
+    return results
 
 
 @movie_blueprint.route("/<public_id>", methods=["GET"])
@@ -50,7 +86,7 @@ def like_movie(user, movie, public_id):
     movie_schema = MovieSchema(exclude=["release_year", "poster_img_url"])
     user.liked_movies.append(movie)
     db.session.commit()
-    return (
+    return make_response(
         jsonify(
             {
                 "message": f"Movie '{movie.title}' liked",
@@ -71,7 +107,7 @@ def unlike_movie(user, movie, public_id):
         user.liked_movies.remove(movie)
 
     db.session.commit()
-    return (
+    return make_response(
         jsonify(
             {
                 "message": f"Movie '{movie.title}' unliked",
