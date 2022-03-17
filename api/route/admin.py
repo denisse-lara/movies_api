@@ -28,6 +28,20 @@ def find_user(f):
     return decorated
 
 
+def find_movie(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        movie_id = kwargs.get("public_id", "")
+        movie = Movie.query.filter_by(public_id=movie_id).first()
+
+        if not movie:
+            return jsonify({"message": "Movie not found", "status_code": 404}), 404
+
+        return f(movie, *args, **kwargs)
+
+    return decorated
+
+
 @admin_blueprint.route("/users", methods=["GET"])
 @authorized_admin
 def get_all_users():
@@ -169,3 +183,36 @@ def add_movie():
 
     movie_schema = MovieSchema()
     return jsonify(json.loads(movie_schema.dumps(movie))), 201
+
+
+@admin_blueprint.route("/movies/<public_id>", methods=["PUT"])
+@find_movie
+@authorized_admin
+def update_movie(movie, public_id):
+    movie_data = request.get_json()
+
+    if (
+        "title" in movie_data
+        and movie_data["title"] is not None
+        and movie_data["title"] != ""
+    ):
+        movie.title = movie_data["title"]
+
+    if (
+        "release_year" in movie_data
+        and movie_data["release_year"] is not None
+        and movie_data["release_year"] != ""
+    ):
+        movie.release_year = movie_data["release_year"]
+
+    if (
+        "poster_img_url" in movie_data
+        and movie_data["poster_img_url"] is not None
+        and movie_data["poster_img_url"] != ""
+    ):
+        movie.poster_img_url = movie_data["poster_img_url"]
+
+    db.session.commit()
+
+    movie_schema = MovieSchema()
+    return jsonify(json.loads(movie_schema.dumps(movie))), 200

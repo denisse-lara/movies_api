@@ -11,8 +11,8 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String(50), unique=True, nullable=False)
     title = db.Column(db.String(255), nullable=False)
-    release_year = db.Column(db.Integer)
-    poster_img_url = db.Column(db.String(255))
+    release_year = db.Column(db.Integer, nullable=False)
+    poster_img_url = db.Column(db.String(255), default="")
 
     def __str__(self):
         return f"'title: {self.title}' id: {self.id}"
