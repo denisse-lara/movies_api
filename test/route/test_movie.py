@@ -127,7 +127,7 @@ class TestMovie(BaseTest):
             headers={"Authorization": self.authorization},
         )
 
-        res = self.client.put(
+        res = self.client.delete(
             url_prefix + "/%s/unlike" % self.movie_id,
             headers={"Authorization": self.authorization},
         )
@@ -144,7 +144,7 @@ class TestMovie(BaseTest):
         )
         self.create_user("Another", "User")
         self._set_login_info()
-        res = self.client.put(
+        res = self.client.delete(
             url_prefix + "/%s/unlike" % self.movie_id,
             headers={"Authorization": self.authorization},
         )
@@ -155,7 +155,7 @@ class TestMovie(BaseTest):
         self.assertEqual(1, movie["likes"], "Movie likes should decrease by 1")
 
     def test_unauthenticated_user_unlike_a_movie_returns_unauthorized(self):
-        res = self.client.put(
+        res = self.client.delete(
             url_prefix + "/%s/unlike" % self.movie_id,
         )
         self.assertEqual(
@@ -165,7 +165,7 @@ class TestMovie(BaseTest):
         )
 
     def test_user_unlike_not_existing_movie_returns_not_found(self):
-        res = self.client.put(
+        res = self.client.delete(
             url_prefix + "/%s/not_valid" % self.movie_id,
             headers={"Authorization": self.authorization},
         )
