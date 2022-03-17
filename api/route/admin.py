@@ -1,12 +1,14 @@
 import os
 from functools import wraps
 
-from flask import Blueprint, jsonify, json, request
+from flask import Blueprint, jsonify, json, request, make_response
+from sqlalchemy import desc, asc
 
 from api.model.movie import Movie
 from api.model.user_profile import UserProfile
 from api.route.auth import authorized_admin, clear_user_jwt
 from api.route.movie import find_movie
+from api.route.paginate import paginate
 from api.schema.movie import MovieSchema
 from api.schema.user_profile import UserProfileSchema
 from app import db
@@ -29,13 +31,51 @@ def find_user(f):
     return decorated
 
 
+def user_query_filter(query, args):
+    if "admin" in args and type(json.loads(args.get("admin"))) is bool:
+        query = query.filter_by(admin=json.loads(args.get("admin")))
+
+    if "banned" in args and type(json.loads(args.get("banned"))) is bool:
+        query = query.filter_by(banned=json.loads(args.get("banned")))
+
+    return query
+
+
+def user_query_sort_by(query, args):
+    if "sort" in args:
+        sorting = args.get("sort").split(",")
+        for by in sorting:
+            order = desc if "-" in by else asc
+            if "username" in by:
+                query = query.order_by(order(UserProfile.username))
+            elif "name" in by:
+                query = query.order_by(order(UserProfile.name))
+            elif "banned" in by:
+                query = query.order_by(order(UserProfile.banned))
+            elif "admin" in by:
+                query = query.order_by(order(UserProfile.admin))
+
+    return query
+
+
 @admin_blueprint.route("/users", methods=["GET"])
 @authorized_admin
 def get_all_users():
-    users = UserProfile.query.all()
     users_schema = UserProfileSchema(many=True)
-    users_list = users_schema.dumps(users)
-    return jsonify(json.loads(users_list)), 200
+    query = UserProfile.query
+
+    # filter by admin or banned
+    query = user_query_filter(query, request.args)
+    query = user_query_sort_by(query, request.args)
+
+    if "page" in request.args:
+        page = request.args.get("page", 1, type=int)
+        results = make_response(paginate(query, users_schema, page, "users"))
+    else:
+        users = query.all()
+        results = make_response((jsonify(json.loads(users_schema.dumps(users))), 200))
+
+    return results
 
 
 @admin_blueprint.route("/users/<public_id>/promote", methods=["PUT"])

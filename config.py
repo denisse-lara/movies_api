@@ -19,3 +19,5 @@ HOST = env.str("HOST")
 PORT = env.int("PORT")
 
 JWT_ALGORITHMS = "HS256"
+
+ROWS_PER_PAGE = 25
