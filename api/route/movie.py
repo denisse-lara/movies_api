@@ -3,15 +3,16 @@ import os
 from functools import wraps
 
 from flask import Blueprint, jsonify, json, request, make_response
-from sqlalchemy import desc, asc, func
+from sqlalchemy import desc, asc
 
-from api.model.movie import Movie, movie_like
+import config
+from api.model.movie import Movie
 from api.route.auth import authorized_user
 from api.route.paginate import paginate
 from api.schema.movie import MovieSchema
 from app import db
 
-url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "movies")
+url_prefix = os.path.join(config.API_URL_PREFIX, "movies")
 movie_blueprint = Blueprint("movies", __name__, url_prefix=url_prefix)
 
 

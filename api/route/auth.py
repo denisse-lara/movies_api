@@ -14,7 +14,7 @@ from api.model.auth import JWTWhitelist
 from api.schema.user_profile import UserProfileSchema
 from app import db
 
-url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "auth")
+url_prefix = os.path.join(config.API_URL_PREFIX, "auth")
 auth_blueprint = Blueprint("auth", __name__, url_prefix=url_prefix)
 
 

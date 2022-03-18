@@ -4,6 +4,7 @@ from functools import wraps
 from flask import Blueprint, jsonify, json, request, make_response
 from sqlalchemy import desc, asc
 
+import config
 from api.model.movie import Movie
 from api.model.user_profile import UserProfile
 from api.route.auth import authorized_admin, clear_user_jwt
@@ -13,7 +14,7 @@ from api.schema.movie import MovieSchema
 from api.schema.user_profile import UserProfileSchema
 from app import db
 
-url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "admin")
+url_prefix = os.path.join(config.API_URL_PREFIX, "admin")
 admin_blueprint = Blueprint("admin", __name__, url_prefix=url_prefix)
 
 

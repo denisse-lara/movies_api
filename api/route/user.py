@@ -3,13 +3,14 @@ from functools import wraps
 
 from flask import Blueprint, make_response, jsonify, json, request
 
+import config
 from api.model.user_profile import UserProfile
 from api.route.auth import authorized_user
 from api.schema.movie import MovieSchema
 from api.schema.user_profile import UserProfileSchema
 from app import db
 
-url_prefix = os.path.join(os.getenv("API_URL_PREFIX"), "users")
+url_prefix = os.path.join(config.API_URL_PREFIX, "users")
 user_blueprint = Blueprint("users", __name__, url_prefix=url_prefix)
 
 forbidden_response = (
