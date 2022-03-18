@@ -1,11 +1,11 @@
-import base64
 import os
+
 from functools import wraps
 
 from flask import Blueprint, jsonify, json, request, make_response
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, func
 
-from api.model.movie import Movie
+from api.model.movie import Movie, movie_like
 from api.route.auth import authorized_user
 from api.route.paginate import paginate
 from api.schema.movie import MovieSchema
@@ -52,6 +52,15 @@ def movie_query_sort_by(query, args):
     return query
 
 
+def movie_sort_by_likes(movies, args):
+    order = True
+    if "-likes" in args["sort"]:
+        order = False  # False is asc
+    movies = sorted(movies, key=lambda m: m["likes"], reverse=order)
+
+    return json.loads(json.dumps(movies))
+
+
 @movie_blueprint.route("", methods=["GET"])
 @authorized_user
 def get_all_movies(user):
@@ -62,11 +71,23 @@ def get_all_movies(user):
 
     if "page" in request.args:
         page = request.args.get("page", 1, type=int)
-        results = make_response(paginate(query, movie_schema, page, "movies"))
+
+        results = paginate(query, movie_schema, page, "movies")
+
+        # TODO: learn how to use sqlalchemy and use query instead
+        if "sort" in request.args and "likes" in request.args["sort"]:
+            results[0]["movies"] = movie_sort_by_likes(
+                json.loads(json.dumps(results[0]))["movies"], request.args
+            )
+
         results = make_response(results)
     else:
         movies = query.all()
-        results = make_response((jsonify(json.loads(movie_schema.dumps(movies))), 200))
+        movies = json.loads(movie_schema.dumps(movies))
+        # TODO: learn how to use sqlalchemy and use query instead
+        if "sort" in request.args and "likes" in request.args["sort"]:
+            movies = movie_sort_by_likes(movies, request.args)
+        results = make_response((jsonify(movies), 200))
 
     return results
 
