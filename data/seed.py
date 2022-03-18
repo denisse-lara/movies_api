@@ -1,6 +1,7 @@
 import csv
 import random
 import sys
+sys.path.insert(1, '../technical_challenge')
 
 from faker import Faker
 from werkzeug.security import generate_password_hash
@@ -8,8 +9,6 @@ from werkzeug.security import generate_password_hash
 from api.model.movie import Movie
 from app import create_app, db
 from api.model.user_profile import UserProfile
-
-sys.path.append("../technical_challenge")
 
 app = create_app()
 fake = Faker()
@@ -19,18 +18,18 @@ def like_movie(users_arr, movies_arr):
     for user in users_arr:
         movie = random.choice(movies_arr)
         if not user.liked_movies.count(movie):
-            print(f"{user.username} liking movie {movie.title}")
+            # print(f"{user.username} liking movie {movie.title}")
             user.liked_movies.append(movie)
 
 
 print("Seeding database")
 with app.app_context():
-    print("Dropping")
+    print("Dropping tables...")
     db.drop_all()
-    print("Creating")
+    print("Creating tables...")
     db.create_all()
 
-    print("\nSaving admin user")
+    print("\nSaving admin user username='admin' password='admin'")
     # create admin
     admin = UserProfile(
         username="admin",
@@ -41,12 +40,15 @@ with app.app_context():
     db.session.add(admin)
     db.session.commit()
 
-    password = generate_password_hash("password")
+    password = generate_password_hash("12345")
     admin = False
-    print("\nSaving 100 new users")
+    print("Saving 100 new users, all with password=12345")
     banned = True
     for _ in range(100):
         name = fake.name()
+        # prevent duplicate name from faker
+        while UserProfile.query.filter_by(name=name).first():
+            name = fake.name()
         username = "_".join(name.lower().split())
 
         new_user = UserProfile(
@@ -56,7 +58,6 @@ with app.app_context():
             admin=False,
             banned=banned,
         )
-        print(repr(new_user))
         db.session.add(new_user)
         if _ == 50:
             banned = False
@@ -64,26 +65,28 @@ with app.app_context():
 
     with open("data/movies.tsv") as movies_file:
         movies_reader = csv.DictReader(movies_file, ["title", "release_year"])
-        print("\nChoosing 500 movies")
-        movies_reader = random.choices(list(movies_reader), k=500)
         movies_reader = [
             movie for movie in movies_reader if movie["release_year"] != "\\N"
-        ]
+        ][1:]
 
-        print("Saving 500 movies")
+        print("\nSaving all movies")
+        print("This will take a while...")
         for movie in movies_reader:
-            new_movie = Movie(
-                title=movie["title"], release_year=int(movie["release_year"])
-            )
-            print(repr(new_movie))
-            db.session.add(new_movie)
+            try:
+                new_movie = Movie(
+                    title=movie["title"], release_year=int(movie["release_year"]),
+                    poster_img_url=""
+                )
+                db.session.add(new_movie)
+            except ValueError:
+                print(f'Skipping movie {movie["title"]} without release_year {movie["release_year"]}')
         db.session.commit()
 
     users = UserProfile.query.filter(UserProfile.username != "admin").all()
     movies = Movie.query.all()
 
-    # make users like around 10 movies
-    for _ in range(10):
+    print("\nMaking users like movies")
+    for _ in range(20):
         like_movie(users, movies)
     db.session.commit()
 
