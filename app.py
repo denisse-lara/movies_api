@@ -26,7 +26,7 @@ def create_app():
     migrate.init_app(app, db)
     ma.init_app(app)
 
-    from api.model import user_profile, auth
+    from api.model import user_profile, auth, movie
 
     from api.route import auth, admin, user, movie
 
@@ -40,8 +40,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-
-    with app.app_context():
-        db.create_all()
 
     app.run(host=config.HOST, port=config.PORT)
